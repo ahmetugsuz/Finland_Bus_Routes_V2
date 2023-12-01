@@ -121,7 +121,7 @@ if __name__ == "__main__":
     time.sleep(4)
     logger.info("Configuring database cleanup schedule...")
     time.sleep(1)
-    logger.warning("Database memory cleanup scheduled every 3 minutes: [{}]".format(timestamp))
+    logger.warning("Database memory cleanup scheduled every 6 minutes: [{}]".format(timestamp))
     #logger.info("Deleting data from db to free memory")
     logger.info("Timeschedule for cleanup can be configured in the code")
     

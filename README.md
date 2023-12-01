@@ -1,6 +1,6 @@
-# Finland Bus Routes Version 2
+# Finland Bus Routes 
 
-Welcome to the Finland Bus Routes project! This application provides a service to consume telemetry from the MQTT broker server mqtt.hsl.fi, store the telemetry, and make it searchable through an API. The API is accessible through HTTP and provides information about the location, next stop of the buses in Finland and more via this application.
+Welcome to the Finland Bus Routes (version 2.0) project! This application provides a service to consume telemetry from the MQTT broker server mqtt.hsl.fi, store the telemetry, and make it searchable through an API. The API is accessible through HTTP and provides information about the location, next stop of the buses in Finland and more via this application.
 
 ## Version 2 Updates
 
@@ -53,7 +53,7 @@ This project includes the following features:
 
 **Audience:** This project is designed for public transportation enthusiasts, developers, and anyone looking to streamline their bus travel experience in Finland.  
 
-**License:** This project is open-source and available under the [MIT License](https://opensource.org/licenses/MIT).  
+**License:** This project is open-source and available under the [CC BY-NC](LICENSE), with restriction on commercial use.  
 
 **Contributing:** If you'd like to get involved, please refer to my website and contact me: [ahmettu.com](https://www.ahmettu.com) 
 
@@ -177,7 +177,32 @@ The following endpoints are available:
 
 - **[GET] http://localhost:5001/locations**  
 This endpoint returns JSON data of locations for active buses in Finland, displaying the most recent updates for each bus.    
-**JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.  
+**JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.   
+    **Example response for API request `/locations`:**
+
+    ```json
+        [
+            {
+                "telemetry": {
+                    "vehicle": {
+                        "number": 1384,
+                        "operator": "Nobina Finland Oy",
+                        "current_location": "11 B, Tilanhoitajankaari, Latokartano, Uusimaa",
+                        "latitude": 60.229991,
+                        "longitude": 25.029556
+                    },
+                    "timestamp": {
+                        "tsi": 1701467994,
+                        "utc_formatted": "21:59:54"
+                    },
+                    "route": {
+                        "number": "79",
+                        "destination": "Herttoniemi (M)"
+                    }
+                }
+            }
+        ]
+    ```  
 
 - **[GET] http://localhost:5001/locations/next_stop**  
 This endpoint returns JSON data of locations and their next stop information for active buses in Finland, displaying the most recent updates for each bus.   
@@ -427,7 +452,7 @@ The Cleanup Application is an essential component of the Finland Bus Routes syst
 
 #### Configuration <a name="configuration"></a>
 
-The Cleanup Application is set to perform cleanup every 3 minutes by default, ensuring that the database remains up-to-date without retaining outdated information. However, the cleanup interval is configurable to meet specific requirements.
+The Cleanup Application is set to perform cleanup every 6 minutes by default, ensuring that the database remains up-to-date without retaining outdated information. However, the cleanup interval is configurable to meet specific requirements.
 
 To customize the Cleanup Application's cleanup interval (e.g., every 24 hours to perform daily cleanup, clearing data from the previous day), follow these steps:
 

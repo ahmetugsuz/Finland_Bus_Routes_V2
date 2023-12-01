@@ -21,19 +21,28 @@ app = Flask(__name__)
 
 def connect_to_db():
     # Connecting to db
-    time.sleep(2)
-    conn_pool = psycopg2.pool.SimpleConnectionPool(
-            minconn=1,
-            maxconn=10,
-            host="db",
-            port=5432,
-            database="bus_data",
-            user="ahmettugsuz",
-            password="bus_finland",
-    )
-    return conn_pool
+    time.sleep(1)
+    try:
+        conn_pool = psycopg2.pool.SimpleConnectionPool(
+                minconn=1,
+                maxconn=10,
+                host="db",
+                port=5432,
+                database="bus_data",
+                user="ahmettugsuz",
+                password="bus_finland",
+        )
+        return conn_pool
+    except Exception as e:
+        print(f"Error connecting to the database: {e}")
+        return None
 
 conn_pool = connect_to_db()
+if not conn_pool:
+    print("Retrying connection after 10 seconds...")
+    time.sleep(10)
+    conn_pool = connect_to_db()
+
 
 
 # Setting up the cursor 
