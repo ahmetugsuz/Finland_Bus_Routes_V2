@@ -1,0 +1,10 @@
+
+database:
+  host: db
+  port: 5432
+  name: bus_data
+  user: ahmettugsuz
+  password: bus_finland
+
+app:
+  secret_key: your_secret_key_here

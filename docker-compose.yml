@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  bus_data:
+    build: .
+    image: my-flask-app  # Use the name of your updated Docker image
+    ports:
+      - "5001:5001"
+    environment:
+      FLASK_APP: app.py
+      FLASK_DEBUG: 1  # Use quotes for integer values
+      POSTGRES_USER: ahmettugsuz
+      POSTGRES_DB: bus_data
+      POSTGRES_PASSWORD: bus_finland
+      DATABASE_URL: postgres://ahmettugsuz:bus_finland@db:5432/bus_data  # Updated host to "db"
+    depends_on:
+      - db
+
+  db:
+    image: ahmettugsuz/all_bus_routes_finland:db-v1.0  # Use the original PostgreSQL image (ensure it's compatible with ARM64)
+    environment:
+      POSTGRES_USER: ahmettugsuz
+      POSTGRES_DB: bus_data
+      POSTGRES_PASSWORD: bus_finland
+    ports:
+      - "5432:5432"
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+
+  cleanup:
+    build:
+      context: ./cleanup  # Path to the directory containing your Dockerfile and cleanup.py
+    environment:
+      POSTGRES_USER: ahmettugsuz
+      POSTGRES_DB: bus_data
+      POSTGRES_PASSWORD: bus_finland
+      DATABASE_URL: postgres://ahmettugsuz:bus_finland@db:5432/bus_data
+    volumes:
+      - ./cleanup_data:/app/data
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+
