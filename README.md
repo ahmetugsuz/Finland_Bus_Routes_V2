@@ -176,11 +176,10 @@ Once the containers are up and running, you can access the API endpoints by navi
 The following endpoints are available:   
 
 - **[GET] http://localhost:5001/locations**  
-This endpoint returns JSON data of locations for active buses in Finland, displaying the most recent updates for each bus.    
-**JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.   
-    **Example response for API request `/locations`:**
-
-    ```json
+This endpoint returns JSON data of locations for active buses in Finland, displaying the most recent updates for each bus.     
+    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.   
+    **Example response for API endpoint `/locations`:**    
+```json
         [
             {
                 "telemetry": {
@@ -202,15 +201,74 @@ This endpoint returns JSON data of locations for active buses in Finland, displa
                 }
             }
         ]
-    ```  
+```  
 
 - **[GET] http://localhost:5001/locations/next_stop**  
 This endpoint returns JSON data of locations and their next stop information for active buses in Finland, displaying the most recent updates for each bus.   
-**JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /vehicle_number API-endpoint as shown down below.  
+    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /vehicle_number API-endpoint as shown down below.   
+    **Example response for API endpoint `/next_stop`:**
+```json
+        {
+        "telemetry": {
+            "status": null,
+            "vehicle": {
+                "number": 291,
+                "operator": "Oy Pohjolan Liikenne Ab",
+                "current_location": "Soukantie, Soukanmäki, Soukka, Uusimaa",
+                "latitude": 60.139961,
+                "longitude": 24.67266
+            },
+            "timestamp": {
+                "tsi": 1701470019,
+                "utc_formatted": "22:33:39"
+            },
+            "route": {
+                "number": "147N",
+                "destination": "Kamppi"
+            },
+            "next_stop": {
+                "name": "Soukankuja",
+                "adress": "Soukan kirjasto, 4, Soukantie",
+                "lat_long": "60.137927, 24.673283",
+                "arrived_time_to_the_stop": "None"
+            }
+        }
+    },
+```
 
 - **[GET] http://localhost:5001/locations/logger**  
 This historical endpoint provides a log of all related data for each active bus in Finland. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time.  
 **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.  
+**Example response for API endpoint `/logger`:**
+```json
+    {
+        "status": "success",
+        "telemetry": {
+            "status": null,
+            "vehicle": {
+                "number": 290,
+                "operator": "Oy Pohjolan Liikenne Ab",
+                "current_location": "41, Yläkartanontie, Soukanranta, Uusimaa",
+                "latitude": 60.139871,
+                "longitude": 24.659912
+            },
+            "timestamp": {
+                "tsi": 1701470180,
+                "utc_formatted": "22:36:20"
+            },
+            "route": {
+                "number": "147N",
+                "destination": "Kivenlahti"
+            },
+            "next_stop": {
+                "name": "Soukanlahti",
+                "adress": "Soukanlahti, Espoonlahdentie, Soukanranta",
+                "lat_long": "60.13979, 24.65859",
+                "arrival_time_to_the_stop": "None"
+            }
+        }
+    }
+```
 
 - **[GET] http://localhost:5001/locations/latest**  
 This endpoint accumulates and provides the most recently available recorded data for each active bus in Finland. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies.  
