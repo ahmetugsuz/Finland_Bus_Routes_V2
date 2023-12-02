@@ -181,27 +181,25 @@ This endpoint returns JSON data of locations for active buses in Finland, displa
     **Example response for API endpoint `/locations`:**   
  
     ```json
-            [
-                {
-                    "telemetry": {
-                        "vehicle": {
-                            "number": 1384,
-                            "operator": "Nobina Finland Oy",
-                            "current_location": "11 B, Tilanhoitajankaari, Latokartano, Uusimaa",
-                            "latitude": 60.229991,
-                            "longitude": 25.029556
-                        },
-                        "timestamp": {
-                            "tsi": 1701467994,
-                            "utc_formatted": "21:59:54"
-                        },
-                        "route": {
-                            "number": "79",
-                            "destination": "Herttoniemi (M)"
-                        }
-                    }
-                }
-            ]
+    {
+        "telemetry": {
+            "vehicle": {
+                "number": 1384,
+                "operator": "Nobina Finland Oy",
+                "current_location": "11 B, Tilanhoitajankaari, Latokartano, Uusimaa",
+                "latitude": 60.229991,
+                "longitude": 25.029556
+            },
+            "timestamp": {
+                "tsi": 1701467994,
+                "utc_formatted": "21:59:54"
+            },
+            "route": {
+                "number": "79",
+                "destination": "Herttoniemi (M)"
+            }
+        }
+    }
     ```  
 
 - **[GET] http://localhost:5001/locations/next_stop**  
@@ -210,32 +208,32 @@ This endpoint returns JSON data of locations and their next stop information for
     **Example response for API endpoint `/next_stop`:**
 
     ```json
-            {
-            "telemetry": {
-                "status": null,
-                "vehicle": {
-                    "number": 291,
-                    "operator": "Oy Pohjolan Liikenne Ab",
-                    "current_location": "Soukantie, Soukanmäki, Soukka, Uusimaa",
-                    "latitude": 60.139961,
-                    "longitude": 24.67266
-                },
-                "timestamp": {
-                    "tsi": 1701470019,
-                    "utc_formatted": "22:33:39"
-                },
-                "route": {
-                    "number": "147N",
-                    "destination": "Kamppi"
-                },
-                "next_stop": {
-                    "name": "Soukankuja",
-                    "adress": "Soukan kirjasto, 4, Soukantie",
-                    "lat_long": "60.137927, 24.673283",
-                    "arrived_time_to_the_stop": "None"
-                }
+    {
+        "telemetry": {
+            "vehicle": {
+                "number": 291,
+                "operator": "Oy Pohjolan Liikenne Ab",
+                "current_location": "Soukantie, Soukanmäki, Soukka, Uusimaa",
+                "latitude": 60.139961,
+                "longitude": 24.67266,
+                "status": "Driving"
+            },
+            "timestamp": {
+                "tsi": 1701470019,
+                "utc_formatted": "22:33:39"
+            },
+            "route": {
+                "number": "147N",
+                "destination": "Kamppi"
+            },
+            "next_stop": {
+                "name": "Soukankuja",
+                "address": "Soukan kirjasto, 4, Soukantie",
+                "lat_long": "60.137927, 24.673283",
+                "arrived_time_to_the_stop": "None"
             }
-        },
+        }
+    }
     ```
 
 - **[GET] http://localhost:5001/locations/logger**  
@@ -244,33 +242,32 @@ This historical endpoint provides a log of all related data for each active bus 
     **Example response for API endpoint `/logger`:**  
 
     ```json
-        {
-            "status": "success",
-            "telemetry": {
-                "status": null,
-                "vehicle": {
-                    "number": 290,
-                    "operator": "Oy Pohjolan Liikenne Ab",
-                    "current_location": "41, Yläkartanontie, Soukanranta, Uusimaa",
-                    "latitude": 60.139871,
-                    "longitude": 24.659912
-                },
-                "timestamp": {
-                    "tsi": 1701470180,
-                    "utc_formatted": "22:36:20"
-                },
-                "route": {
-                    "number": "147N",
-                    "destination": "Kivenlahti"
-                },
-                "next_stop": {
-                    "name": "Soukanlahti",
-                    "adress": "Soukanlahti, Espoonlahdentie, Soukanranta",
-                    "lat_long": "60.13979, 24.65859",
-                    "arrival_time_to_the_stop": "None"
-                }
+    {
+        "telemetry": {
+            "vehicle": {
+                "number": 1238,
+                "operator": "Nobina Finland Oy",
+                "current_location": "Paciuksenkatu, Meilahti, Läntinen suurpiiri, Uusimaa",
+                "latitude": 60.195445,
+                "longitude": 24.890244,
+                "status": "Ready to depart from a stop"
+            },
+            "timestamp": {
+                "tsi": 1701529422,
+                "utc_formatted": "15:03:42"
+            },
+            "route": {
+                "number": "25",
+                "destination": "Pajamäki"
+            },
+            "next_stop": {
+                "name": "Paciuksenkaari",
+                "address": "McDonald's - pääkonttori, 29, Paciuksenkatu",
+                "lat_long": "60.195371, 24.890274",
+                "arrival_time_to_the_stop": "15:04:00"
             }
         }
+    }
     ```
 
 - **[GET] http://localhost:5001/locations/latest**  

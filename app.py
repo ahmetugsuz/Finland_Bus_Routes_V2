@@ -175,7 +175,6 @@ def get_all_bus_locations():
                 counter_result += 1
                 bus_dict = {
                     "telemetry": {
-
                         "vehicle": {
                             "number": result[0],
                             "operator": result[8],
@@ -251,14 +250,13 @@ def last_location_next_stop():
                 counter_result += 1
                 bus_dict = {
                     "telemetry": {
-                        "status": result[18],
-
                         "vehicle": {
                             "number" : result[1],
                             "operator": result[17],
                             "current_location": result[5],
                             "latitude": result[6],
                             "longitude": result[7],
+                            "status": result[18],
                         },
 
                         "timestamp":{
@@ -273,7 +271,7 @@ def last_location_next_stop():
 
                         "next_stop":{
                             "name": result[13],
-                            "adress": result[14],
+                            "address": result[14],
                             "lat_long": f"{result[15]}, {result[16]}",
                             "arrived_time_to_the_stop": str(result[19]),
                         },
@@ -335,16 +333,14 @@ def bus_logger():
             for result in results:
                 counter_result += 1
                 bus_dict = {   
-                    "status": "success",
                     "telemetry": {
-                        "status": result[18],
-
                         "vehicle": {
                             "number" : result[1],
                             "operator": result[17],
                             "current_location": result[5],
                             "latitude": result[6],
                             "longitude": result[7],
+                            "status": result[18],
                         },
 
                         "timestamp": {
@@ -359,7 +355,7 @@ def bus_logger():
 
                         "next_stop":{
                             "name": result[13],
-                            "adress": result[14],
+                            "address": result[14],
                             "lat_long": f"{result[15]}, {result[16]}",
                             "arrival_time_to_the_stop": str(result[19]),
                         }
@@ -509,13 +505,13 @@ def get_vehicle(vehicle_number: int):
                 counter_result += 1
                 vehicle_dict = {
                     "telemetry": {
-                        "status": result[11],
                         "vehicle": {
                             "number" : result[0],
                             "operator": result[10],
                             "current_location": result[4],
                             "latitude": result[13],
-                            "longitude": result[14]
+                            "longitude": result[14],
+                            "status": result[11],
                         },
 
                         "timestamp": {
@@ -530,7 +526,7 @@ def get_vehicle(vehicle_number: int):
 
                         "next_stop": {
                             "name": result[6],
-                            "adress": result[7],
+                            "address": result[7],
                             "lat_long": f"{result[8]}, {result[9]}",
                             "arrival_time_to_the_stop": str(result[12])
                         },
@@ -655,7 +651,7 @@ def buses_within_radius(street, city, radius):
 
                             "next_stop":{
                                 "name": result[8],
-                                "adress": result[9],
+                                "address": result[9],
                                 "lat_long": f"{result[10]}, {result[11]}",
                             },
                         }
