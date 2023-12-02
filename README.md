@@ -67,7 +67,7 @@ This project includes the following features:
 
 ## Getting Started <a name="getting-started"></a>
 
-To run the application, you can use Docker Compose, which simplifies the setup process (as shown in Method 1). To do that, you will need to have [docker desktop]((https://docs.docker.com/desktop/)) installed and set up.
+To run the application, you can use Docker Compose, which simplifies the setup process (as shown in Method 1). To do that, you will need to have [Docker Desktop](https://docs.docker.com/desktop/) installed and set up.
 
 ### Method 1: Using Docker Compose (Recommended, Easiest Way) <a name="method-1"></a>
 
