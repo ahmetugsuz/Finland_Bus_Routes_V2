@@ -31,6 +31,7 @@ Welcome to the Finland Bus Routes (version 2.0) project! This application provid
     - [MQTT telemetry data subscription](#mqtt-telemetry-data-subscription)
     - [Error Handling and Data Resilience](#error-handling)
     - [Contributing](#contributing)
+    - [License](#license)
 
 
 
@@ -646,7 +647,7 @@ If you'd like to contribute to this project, your contributions are more than we
 Your contributions are highly appreciated, and together we can make this project even better! You can always contact me through my website: [www.ahmettu.com](https://www.ahmettu.com)
 
 
-## License
+## License <a name="license"></a>
 
 This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](LICENSE).
 
