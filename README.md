@@ -253,10 +253,10 @@ This endpoint accumulates and provides the most recently available recorded data
     - `vehicle_number` (integer): The unique identifier for the vehicle. Replace {vehicle_number} in the URL with the actual vehicle number.  
 
     **Example:**  
-    To retrieve information for a vehicle with the number 1340, make a GET request to:  
-    - http://localhost:5001/vehicles/1340  
+    To retrieve information for a vehicle with the number 1122, make a GET request to:  
+    - http://localhost:5001/vehicles/1122  
 
-    **Example response for vehicle number 1340:**   
+    **Example response for vehicle number 1122:**   
     ```json
     [
         {
