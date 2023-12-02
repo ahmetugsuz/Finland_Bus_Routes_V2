@@ -175,9 +175,8 @@ Once the containers are up and running, you can access the API endpoints by navi
 **Note:** By default, the API limits the response to the latest 300 updates for each endpoint to ensure efficient data retrieval. However, you can adjust this limitation if needed. Additionally, the data is periodically cleaned up by a cleanup application, and you can configure the cleanup interval based on your usage preferences, from [cleanup configuration](#configuration). For development testing or real-life use, the cleanup interval and data limitation can be customized according to your requirements.   
 The following endpoints are available:   
 
-- **[GET] http://localhost:5001/locations**  
+- **[GET] http://localhost:5001/locations**  <a name="locations"></a>
 This endpoint returns JSON data of locations for active buses in Finland, displaying the most recent updates for each bus.     
-    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.   
     **Example response for API endpoint `/locations`:**   
  
     ```json
@@ -202,44 +201,9 @@ This endpoint returns JSON data of locations for active buses in Finland, displa
     }
     ```  
 
-- **[GET] http://localhost:5001/locations/next_stop**  
+- **[GET] http://localhost:5001/locations/next_stop**  <a name="next_stop"></a>
 This endpoint returns JSON data of locations and their next stop information for active buses in Finland, displaying the most recent updates for each bus.   
-    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /vehicle_number API-endpoint as shown down below.   
     **Example response for API endpoint `/next_stop`:**
-
-    ```json
-    {
-        "telemetry": {
-            "vehicle": {
-                "number": 291,
-                "operator": "Oy Pohjolan Liikenne Ab",
-                "current_location": "Soukantie, Soukanmäki, Soukka, Uusimaa",
-                "latitude": 60.139961,
-                "longitude": 24.67266,
-                "status": "Driving"
-            },
-            "timestamp": {
-                "tsi": 1701470019,
-                "utc_formatted": "22:33:39"
-            },
-            "route": {
-                "number": "147N",
-                "destination": "Kamppi"
-            },
-            "next_stop": {
-                "name": "Soukankuja",
-                "address": "Soukan kirjasto, 4, Soukantie",
-                "lat_long": "60.137927, 24.673283",
-                "arrived_time_to_the_stop": "None"
-            }
-        }
-    }
-    ```
-
-- **[GET] http://localhost:5001/locations/logger**  
-This historical endpoint provides a log of all related data for each active bus in Finland. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time.  
-    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.  
-    **Example response for API endpoint `/logger`:**  
 
     ```json
     {
@@ -270,9 +234,14 @@ This historical endpoint provides a log of all related data for each active bus 
     }
     ```
 
+- **[GET] http://localhost:5001/locations/logger**  
+This historical endpoint provides a log of all related data for each active bus in Finland. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time.  
+    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/next_stop`](#next_stop) API-endpoint as shown above. 
+
+
 - **[GET] http://localhost:5001/locations/latest**  
 This endpoint accumulates and provides the most recently available recorded data for each active bus in Finland. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies.  
-**JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for /buses_within_radius API-endpoint as shown down below.  
+    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/locations`](#locations) API-endpoint as shown above.  
 
 - **[GET] http://localhost:5001/vehicles/{vehicle_number}**   
     This endpoint allows users to retrieve specific information for a vehicle by providing its unique vehicle number as a parameter in the URL.  
@@ -288,27 +257,57 @@ This endpoint accumulates and provides the most recently available recorded data
     ```json
     [
         {
-            "vehicle_number": 1340,
-            "route_number": "731N",
-            "utc_timestamp": "21:30:07",
-            "current_location": "Lahdenväylä, Viikinranta, Uusimaa",
-            "destination": "Kulomäki",
-            "next_stop": "Kamppi",
-            "operator": "Helsingin Bussiliikenne Oy",
-            "status": "Driving",
-            "arrival_time_to_the_stop": "None"
+            "telemetry": {
+                "vehicle": {
+                    "number": 1122,
+                    "operator": "Nobina Finland Oy",
+                    "current_location": "37, Koulutie, Itä-Hakkila, Uusimaa",
+                    "latitude": 60.291049,
+                    "longitude": 25.120028,
+                    "status": null
+                },
+                "timestamp": {
+                    "tsi": 1701529543,
+                    "utc_formatted": "15:05:43"
+                },
+                "route": {
+                    "number": "587",
+                    "destination": "Mellunmäki(M)"
+                },
+                "next_stop": {
+                    "name": "Äimäkuja",
+                    "address": "103, Hakunilantie, Itä-Hakkila",
+                    "lat_long": "60.2906, 25.12053",
+                    "arrival_time_to_the_stop": "None"
+                }
+            }
         },
         {
-            "vehicle_number": 1340,
-            "route_number": "731N",
-            "utc_timestamp": "21:45:28",
-            "current_location": "Lahdenväylä, Kolohonka, Uusimaa",
-            "destination": "Kulomäki",
-            "next_stop": "Lugnet",
-            "operator": "Helsingin Bussiliikenne Oy",
-            "status": null,
-            "arrival_time_to_the_stop": "None"
-        }, 
+            "telemetry": {
+                "vehicle": {
+                    "number": 1122,
+                    "operator": "Nobina Finland Oy",
+                    "current_location": "Mannerheimintie, Taka-Töölö, Eteläinen suurpiiri, Uusimaa",
+                    "latitude": 60.180032,
+                    "longitude": 24.928483,
+                    "status": null
+                },
+                "timestamp": {
+                    "tsi": 1701531822,
+                    "utc_formatted": "15:43:42"
+                },
+                "route": {
+                    "number": "300",
+                    "destination": "Myyrmäki"
+                },
+                "next_stop": {
+                    "name": "Töölön kisahalli",
+                    "address": "YP - Parturi Töölö, 19, Mannerheimintie",
+                    "lat_long": "60.18433, 24.92357",
+                    "arrival_time_to_the_stop": "None"
+                }
+            }
+        }
     ]
     ```  
 
@@ -349,34 +348,79 @@ This endpoint accumulates and provides the most recently available recorded data
     ```json
     [
         {
-            "vehicle_number": 1932,
-            "route_number": "108N",
-            "utc_timestamp": "21:27:54",
-            "current_location": "3a, Topeliuksenkatu, Uusimaa",
-            "destination": "Kamppi",
-            "operator": "Helsingin Bussiliikenne Oy",
-            "next_stop": "Töölöntori"
+            "telemetry": {
+                "vehicle": {
+                    "number": 1122,
+                    "operator": "Nobina Finland Oy",
+                    "current_location": "Mannerheimintie, Taka-Töölö, Eteläinen suurpiiri, Uusimaa",
+                    "latitude": 60.180032,
+                    "longitude": 24.928483
+                },
+                "timestamp": {
+                    "tsi": 1701531822,
+                    "utc_formatted": "15:43:42"
+                },
+                "route": {
+                    "number": "300",
+                    "destination": "Myyrmäki"
+                },
+                "next_stop": {
+                    "name": "Töölön kisahalli",
+                    "address": "YP - Parturi Töölö, 19, Mannerheimintie",
+                    "lat_long": "60.18433, 24.92357"
+                }
+            }
         },
         {
-            "vehicle_number": 446,
-            "route_number": "231N",
-            "utc_timestamp": "21:28:27",
-            "current_location": "88, Mannerheimintie, Uusimaa",
-            "destination": "Elielinaukio",
-            "operator": "Oy Pohjolan Liikenne Ab",
-            "next_stop": "Töölön kisahalli"
+            "telemetry": {
+                "vehicle": {
+                    "number": 1135,
+                    "operator": "Nobina Finland Oy",
+                    "current_location": "Mannerheimintie, Etu-Töölö, Eteläinen suurpiiri, Uusimaa",
+                    "latitude": 60.177177,
+                    "longitude": 24.930011
+                },
+                "timestamp": {
+                    "tsi": 1701531821,
+                    "utc_formatted": "15:43:41"
+                },
+                "route": {
+                    "number": "200",
+                    "destination": "Elielinaukio"
+                },
+                "next_stop": {
+                    "name": "Hesperian puisto",
+                    "address": "40, Mannerheimintie, Etu-Töölö",
+                    "lat_long": "60.17714, 24.92988"
+                }
+            }
         },
         {
-            "vehicle_number": 1247,
-            "route_number": "40",
-            "utc_timestamp": "21:28:30",
-            "current_location": "50, Mannerheimintie, Uusimaa",
-            "destination": "Elielinaukio",
-            "operator": "Nobina Finland Oy",
-            "next_stop": "Hesperian puisto"
-        },
+            "telemetry": {
+                "vehicle": {
+                    "number": 1171,
+                    "operator": "Nobina Finland Oy",
+                    "current_location": "3a, Topeliuksenkatu, Taka-Töölö, Uusimaa",
+                    "latitude": 60.179909,
+                    "longitude": 24.92218
+                },
+                "timestamp": {
+                    "tsi": 1701531692,
+                    "utc_formatted": "15:41:32"
+                },
+                "route": {
+                    "number": "37",
+                    "destination": "Myyrmäki as."
+                },
+                "next_stop": {
+                    "name": "Töölöntori",
+                    "address": "3a, Topeliuksenkatu, Taka-Töölö",
+                    "lat_long": "60.17992, 24.92216"
+                }
+            }
+        }
     ]
-    ```
+    ```    
 
     ***Note:*** Replace the `street`, `city`, and `radius` values in the URL with your desired location and radius parameters.  
     ***Remember:***  A higher radius targets larger area around the address provided in the url. It is worth noticing that there might be "no bus found" within radius of 500 meter, since of the cleanup application might have removed stored data to free up memory, or there might be no buses in the are actively, hence try to increase the radius.  

@@ -273,7 +273,7 @@ def last_location_next_stop():
                             "name": result[13],
                             "address": result[14],
                             "lat_long": f"{result[15]}, {result[16]}",
-                            "arrived_time_to_the_stop": str(result[19]),
+                            "arrivel_time_to_the_stop": str(result[19]),
                         },
                     }
                 }
