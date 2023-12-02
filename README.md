@@ -9,8 +9,10 @@ Discover the enhanced features and improvements in Finland Bus Routes Version 2.
 - **Faster:** Up to 10x more threads are now working simultaneously to fetch the most recent data.
   
 - **Reliable:** Improved error handling and resolution of many bugs for a more dependable experience.
+
+- **Optimized Code:** Version 2 incorporates optimizations in the codebase, enhancing overall performance and efficiency. The streamlined and optimized code ensures faster execution, reduced resource utilization, and a more responsive system, contributing to a smoother user experience.
   
-- **Constructive and Cleaner API Objects:** Version 2 introduces a more structured and well-organized API, making it easier to understand. The enhanced structure includes additional information, contributing to the development of a more robust backend for users.
+- **Constructive and Cleaner API Objects:** Version 2 introduces a more structured and well-organized API, making it easier to understand. The enhanced structure includes additional information, contributing to the development of a more robust and helpful backend for developers, to make it a more precise and user-friendly experience.
 
 - **Timing of Cleanup:** Thanks to the latest robust error handling mechanisms, the cleanup application for the database is now scheduled every 6 minutes as a standard option. This enhancement not only ensures a more streamlined data maintenance process but also provides you with a richer dataset to explore during the testing phase before it becomes your real-life bus tracking app. 
 
@@ -327,8 +329,8 @@ This endpoint accumulates and provides the most recently available recorded data
     - `radius` (integer): The search radius in meters.  
 
     **Example:**    
-    To find buses within a 500-meter radius of ***Mannerheimintie*** in ***Uusimaa***, make a GET request to:  
-    - http://localhost:5001/buses_within_radius/Mannerheimintie/Uusimaa/500  
+    To find buses within a 500-meter radius of ***Mannerheimintie*** in ***Helsinki***, make a GET request to:  
+    - http://localhost:5001/buses_within_radius/Mannerheimintie/Helsinki/1000  
 
     **Example Requests:** 
 
@@ -338,7 +340,7 @@ This endpoint accumulates and provides the most recently available recorded data
 
     ii. Search by street and region only, within a radius of 2000 meters: 
 
-    * Request example: `/buses_within_radius/Mannerheimintie/Helsinki/2000`   
+    * Request example: `/buses_within_radius/Mannerheimintie/Uusimaa/2000`   
 
     iii. Search by street and building number, within a radius of 500 meters:   
 
@@ -347,86 +349,63 @@ This endpoint accumulates and provides the most recently available recorded data
     And more of these type of combinations ...  
 
 
-    **Example Response on http://localhost:5001/buses_within_radius/Mannerheimintie/Uusimaa/500:**   
+    **Example Response on http://localhost:5001/buses_within_radius/Mannerheimintie/Uusimaa/1000:**   
     ```json
     [
         {
             "telemetry": {
                 "vehicle": {
-                    "number": 1122,
+                    "number": 1239,
                     "operator": "Nobina Finland Oy",
-                    "current_location": "Mannerheimintie, Taka-Töölö, Eteläinen suurpiiri, Uusimaa",
-                    "latitude": 60.180032,
-                    "longitude": 24.928483
+                    "current_location": "Töölön kirkko, 4, Topeliuksenkatu, Uusimaa",
+                    "latitude": 60.180019,
+                    "longitude": 24.921968
                 },
                 "timestamp": {
-                    "tsi": 1701531822,
-                    "utc_formatted": "15:43:42"
+                    "tsi": 1701551732,
+                    "utc_formatted": "21:15:32"
                 },
                 "route": {
-                    "number": "300",
+                    "number": "30",
                     "destination": "Myyrmäki"
-                },
-                "next_stop": {
-                    "name": "Töölön kisahalli",
-                    "address": "YP - Parturi Töölö, 19, Mannerheimintie",
-                    "lat_long": "60.18433, 24.92357"
-                }
-            }
-        },
-        {
-            "telemetry": {
-                "vehicle": {
-                    "number": 1135,
-                    "operator": "Nobina Finland Oy",
-                    "current_location": "Mannerheimintie, Etu-Töölö, Eteläinen suurpiiri, Uusimaa",
-                    "latitude": 60.177177,
-                    "longitude": 24.930011
-                },
-                "timestamp": {
-                    "tsi": 1701531821,
-                    "utc_formatted": "15:43:41"
-                },
-                "route": {
-                    "number": "200",
-                    "destination": "Elielinaukio"
-                },
-                "next_stop": {
-                    "name": "Hesperian puisto",
-                    "address": "40, Mannerheimintie, Etu-Töölö",
-                    "lat_long": "60.17714, 24.92988"
-                }
-            }
-        },
-        {
-            "telemetry": {
-                "vehicle": {
-                    "number": 1171,
-                    "operator": "Nobina Finland Oy",
-                    "current_location": "3a, Topeliuksenkatu, Taka-Töölö, Uusimaa",
-                    "latitude": 60.179909,
-                    "longitude": 24.92218
-                },
-                "timestamp": {
-                    "tsi": 1701531692,
-                    "utc_formatted": "15:41:32"
-                },
-                "route": {
-                    "number": "37",
-                    "destination": "Myyrmäki as."
                 },
                 "next_stop": {
                     "name": "Töölöntori",
                     "address": "3a, Topeliuksenkatu, Taka-Töölö",
-                    "lat_long": "60.17992, 24.92216"
+                    "lat_long": "60.179773, 24.922318"
+                }
+            }
+        },
+        {
+            "telemetry": {
+                "vehicle": {
+                    "number": 1919,
+                    "operator": "Helsingin Bussiliikenne Oy",
+                    "current_location": "9, Topeliuksenkatu, Töölö, Uusimaa",
+                    "latitude": 60.18201,
+                    "longitude": 24.919936
+                },
+                "timestamp": {
+                    "tsi": 1701551733,
+                    "utc_formatted": "21:15:33"
+                },
+                "route": {
+                    "number": "63",
+                    "destination": "Paloheinä"
+                },
+                "next_stop": {
+                    "name": "Linnankoskenkatu",
+                    "address": "25, Topeliuksenkatu, Eläintarha",
+                    "lat_long": "60.18484, 24.917"
                 }
             }
         }
     ]
-    ```    
+    ```  
+    ***This data is gathered 3 minutes after the database cleanup***   
 
     ***Note:*** Replace the `street`, `city`, and `radius` values in the URL with your desired location and radius parameters.  
-    ***Remember:***  A higher radius targets a larger area around the address provided in the URL. It is worth noticing that there might be "no bus found" within a radius of 500 meters. This could be due to the cleanup application removing stored data to free up memory, or there might be no active buses in that area at that moment. Hence, consider increasing the radius or refreshing with the same parameters after a minute or so.
+    ***Remember:***  A higher radius targets a larger area around the address provided in the URL. It is worth noticing that there might be "no bus found" within a radius of 500 meters (is it is only collecting buses with active status within given area/radius). This could be due to the cleanup application removing stored data to free up memory, or there might be no active buses in that area at that moment. Hence, consider increasing the radius or refreshing with the same parameters after a minute or so.
 
 - **[POST] /buses_near_me**  
 

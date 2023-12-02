@@ -17,38 +17,7 @@ from retrying import retry
 from cleanup.cleanup import cleanup_in_progress
 from opencage.geocoder import OpenCageGeocode
 # Initialize Flask application
-app = Flask(__name__)        
-
-def connect_to_db():
-    # Connecting to db
-    time.sleep(1)
-    try:
-        conn_pool = psycopg2.pool.SimpleConnectionPool(
-                minconn=1,
-                maxconn=10,
-                host="db",
-                port=5432,
-                database="bus_data",
-                user="ahmettugsuz",
-                password="bus_finland",
-        )
-        return conn_pool
-    except Exception as e:
-        print(f"Error connecting to the database: {e}")
-        return None
-
-conn_pool = connect_to_db()
-if not conn_pool:
-    print("Retrying connection after 10 seconds...")
-    time.sleep(10)
-    conn_pool = connect_to_db()
-
-
-
-# Setting up the cursor 
-cursor = None
-conn_key = "poolkey"
-
+app = Flask(__name__)    
 
 # Create a logger instance
 logger = logging.getLogger('application_logger')
@@ -73,26 +42,51 @@ console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+def connect_to_db():
+    # Connecting to db
+    time.sleep(1)
+    try:
+        conn_pool = psycopg2.pool.SimpleConnectionPool(
+                minconn=1,
+                maxconn=10,
+                host="db",
+                port=5432,
+                database="bus_data",
+                user="ahmettugsuz",
+                password="bus_finland",
+        )
+        return conn_pool
+    except Exception as e:
+        print(f"Error connecting to the database: {e}")
+        return None
+
+
+
+# Setting up the cursor 
+cursor = None
 
 # method to get a connection from the pool
-def get_connection():
+def get_connection(conn_key, conn_pool):
     time.sleep(0.1)
     global cursor
     conn = conn_pool.getconn(key=conn_key)
     cursor = conn.cursor()
     return conn
 
-
 # Method to release a connection back to the pool
-def release_connection(conn):
+def release_connection(conn, conn_key, conn_pool):
     conn_pool.putconn(conn=conn, key=conn_key)
 
+# Method to close a specific connection
+def close_connection(conn):
+    conn.close()
+
 # Method to close all connestions in the pool
-def close_all_connections():
+def close_all_connections(conn_pool):
     conn_pool.closeall()
 
 
-def start_subscriber():
+def start_subscriber(conn_pool, conn_key, conn):
     """
         Mainly focusing on subscribing to the topic:
         - We only collect the ongoing vehicles, in our case the buses.
@@ -102,7 +96,6 @@ def start_subscriber():
         # Get a connection from the pool
         #logger.info("Time between threads accumulation is 1 sec.")
     time.sleep(0.01)
-    conn = get_connection()
 
         # The broker address we want to connect to
     broker_address = "mqtt.hsl.fi" 
@@ -117,16 +110,27 @@ def start_subscriber():
     subscriber.start()
 
         # Release the connection back to the pool
-    release_connection(conn)
+    release_connection(conn, conn_key, conn_pool)
 
 
 def start_threads():
+    conn_pool = connect_to_db()
+    if not conn_pool:
+        print("Retrying connection after 10 seconds...")
+        time.sleep(10)
+        conn_pool = connect_to_db()
+
+    conn_key = "poolkey"
+    conn = get_connection(conn_key, conn_pool)
+
     #time.sleep(1)
     #logger.info("The Threads getting ready to be executed ..")
     # Threading the subscriber class independently so that the class can run on max 10 threads simultaneously, while also the Flask app can run simultaneously when the app is running
     executor_subscriber_class = ThreadPoolExecutor(max_workers=10)
     #executor_subscriber_class.daemon = True 
-    executor_subscriber_class.submit(start_subscriber)
+    executor_subscriber_class.submit(start_subscriber, conn_pool, conn_key, conn)
+
+    return executor_subscriber_class
 
 
 
@@ -139,8 +143,6 @@ def get_all_bus_locations():
     This method returns all last updated bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in whole finland.
     """
     try:
-        conn = get_connection()
-
         cursor.execute(""" 
             SELECT DISTINCT 
                 bs.vehicle_number AS vehicle_number,
@@ -224,7 +226,6 @@ def last_location_next_stop():
     """
     logger.info("Syncing data for next stop to JSON API ...")
     try: 
-        get_connection()
         cursor.execute("""
             SELECT DISTINCT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop
             FROM bus_status AS bs
@@ -308,7 +309,6 @@ def bus_logger():
     """
     logger.info("Syncing data for locations logger to JSON API ...")
     try: 
-        get_connection()
         cursor.execute("""
             SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop
             FROM bus_status AS bs
@@ -392,7 +392,6 @@ def last_updated():
     This method returns all last updated bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in whole finland.
     """
     try:
-        conn = get_connection()
         logger.info("Syncing data for latest to JSON API ...")
         cursor.execute(""" 
             WITH LatestBus AS (
@@ -462,7 +461,6 @@ def get_vehicle(vehicle_number: int):
 
     """
     try: 
-        conn = get_connection()
         logger.info("Syncing data for vehicle number {} to JSON API ...".format(vehicle_number))
         cursor.execute("""
         SELECT DISTINCT
@@ -688,7 +686,7 @@ def buses_near_me():
     The output is a JSON object containing data about the buses in the vicinity of the user.
     """
 
-    get_connection()
+
 
     data = request.get_json()
     api_key = 'b5c600c5d1284ee0b9abc6c69ef95a3b'
@@ -796,7 +794,6 @@ def make_request_with_retry(city, street):
 def free_data():
     try:
         # Get a database connection and cursor
-        conn = get_connection()
 
         # Insert rows into the temporary table
         cursor.execute("""
@@ -848,7 +845,8 @@ def free_data():
 def sigint_handler(signal, frame):
     print("Received SIGINT, stopping Flask app... ")
     # Perform any cleanup necessary (e.g. closing DB connections, releasing the threads ..)
-    executor_subscriber_class.join()  # Wait for the MQTT subscriber thread to finish
+    #executor_subscriber_class.join()  # Wait for the MQTT subscriber thread to finish
+    executor_subscriber_class.shutdown(wait=True)
     # Stop the Flask app
     # Making sure to close the cursor 
     if not cursor.closed: 
