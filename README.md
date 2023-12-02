@@ -67,7 +67,7 @@ This project includes the following features:
 
 ## Getting Started <a name="getting-started"></a>
 
-To run the application, you can use Docker Compose, which simplifies the setup process. Here's how to do it:
+To run the application, you can use Docker Compose, which simplifies the setup process (as shown in Method 1). To do that, you will need to have [docker desktop]((https://docs.docker.com/desktop/)) installed and set up.
 
 ### Method 1: Using Docker Compose (Recommended, Easiest Way) <a name="method-1"></a>
 
@@ -80,11 +80,11 @@ Docker Compose:
 
 1. Clone the GitHub repository to your local machine:  
 
-       git clone https://github.com/ahmetugsuz/Finland_Bus_Routes  
+       git clone https://github.com/ahmetugsuz/Finland_Bus_Routes_V2  
 
 2. Change (if you're not in this directory already) to the project's directory:   
 
-       cd Finland_Bus_Routes   
+       cd Finland_Bus_Routes_V2   
 
 3. Make sure the `docker-compose.yml` file is present in the project's root directory, and
     that you have Docker Desktop installed on your machine.
@@ -110,7 +110,9 @@ Running `docker-compose down` will not only stop the application but also remove
 
 Additionally, you can also use the Ctrl+C keyboard shortcut to stop the running Docker containers, and if you wish to remove the associated Docker images, you can type `docker-compose down`.  
 
-These steps allow you to easily start and stop the entire application, including all the required services, using Docker Compose.
+To delete stored data from the database, first do a `docker-compose down` and then `docker-compose down -v`. Be careful, as this will remove all data who has been stored until now from your database.  
+
+These steps allow you to easily start, stop and delete the entire application, including all the required services, using Docker Compose.
 
 
 ### Method 2: Running Docker commands manually <a name="method-2"></a>
