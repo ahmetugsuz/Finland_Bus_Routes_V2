@@ -4,6 +4,8 @@ Welcome to the Finland Bus Routes (version 2.0) project! This application provid
 
 ## Version 2 Updates
 
+Discover the enhanced features and improvements in Finland Bus Routes Version 2.0:
+
 - **Faster:** Up to 10x more threads are now working simultaneously to fetch the most recent data.
   
 - **Reliable:** Improved error handling and resolution of many bugs for a more dependable experience.
@@ -582,7 +584,7 @@ The **MQTT-Subscriber** class in the Finland Bus Routes project plays a critical
 
 #### Data Sources
 
-Our MQTT-Subscriber class listens to the following MQTT topics:
+MQTT-Subscriber class listens to the following MQTT topics:
 
 ```python
 # Topic we want to subscribe to
@@ -634,7 +636,7 @@ Please note that due to the geocode policy, inactivity or long periods of inacti
 
 **OpenCage Geocoding API documentation:** [geocoding API documentation](https://opencagedata.com/api) 
 
-### Contributing <a name="contributing"></a>
+## Contributing <a name="contributing"></a>
 
 If you'd like to contribute to this project, your contributions are more than welcome. You can contribute in the following ways:
 
