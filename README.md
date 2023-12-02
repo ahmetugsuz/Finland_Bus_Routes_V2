@@ -423,7 +423,7 @@ This endpoint accumulates and provides the most recently available recorded data
     ```    
 
     ***Note:*** Replace the `street`, `city`, and `radius` values in the URL with your desired location and radius parameters.  
-    ***Remember:***  A higher radius targets larger area around the address provided in the url. It is worth noticing that there might be "no bus found" within radius of 500 meter, since of the cleanup application might have removed stored data to free up memory, or there might be no buses in the are actively, hence try to increase the radius.  
+    ***Remember:***  A higher radius targets a larger area around the address provided in the URL. It is worth noticing that there might be "no bus found" within a radius of 500 meters. This could be due to the cleanup application removing stored data to free up memory, or there might be no active buses in that area at that moment. Hence, consider increasing the radius or refreshing with the same parameters after a minute or so.
 
 - **[POST] /buses_near_me**  
 
@@ -461,6 +461,8 @@ This endpoint accumulates and provides the most recently available recorded data
         }
     ]
     ```
+
+    This is an alpha version and it is not yet in use from the developer side. If desired to be a real-life application, it can be updated to much more useful version with more relevant data.
 
 ## More Information <a name="more-information"></a>
 
@@ -642,6 +644,13 @@ If you'd like to contribute to this project, your contributions are more than we
 - **Provide Feedback**: Feel free to share your thoughts, ideas, and feedback related to the project. Your insights can help improve the service for everyone.
 
 Your contributions are highly appreciated, and together we can make this project even better! You can always contact me through my website: [www.ahmettu.com](https://www.ahmettu.com)
+
+
+## License
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](LICENSE).
+
+© Ahmet Tugsuz
 
 
 
