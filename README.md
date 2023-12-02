@@ -30,8 +30,8 @@ Welcome to the Finland Bus Routes (version 2.0) project! This application provid
         - [Configuration](#configuration)
     - [MQTT telemetry data subscription](#mqtt-telemetry-data-subscription)
     - [Error Handling and Data Resilience](#error-handling)
-    - [Contributing](#contributing)
-    - [License](#license)
+- [Contributing](#contributing)
+- [License](#license)
 
 
 
