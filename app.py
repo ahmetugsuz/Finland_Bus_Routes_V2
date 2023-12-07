@@ -44,7 +44,7 @@ logger.addHandler(console_handler)
 
 def connect_to_db():
     # Connecting to db
-    time.sleep(1)
+    #time.sleep(1)
     try:
         conn_pool = psycopg2.pool.SimpleConnectionPool(
                 minconn=1,
@@ -67,7 +67,7 @@ cursor = None
 
 # method to get a connection from the pool
 def get_connection(conn_key, conn_pool):
-    time.sleep(0.1)
+    #time.sleep(0.1)
     global cursor
     conn = conn_pool.getconn(key=conn_key)
     cursor = conn.cursor()
@@ -95,7 +95,7 @@ def start_subscriber(conn_pool, conn_key, conn):
 
         # Get a connection from the pool
         #logger.info("Time between threads accumulation is 1 sec.")
-    time.sleep(0.01)
+    #time.sleep(0.01)
 
         # The broker address we want to connect to
     broker_address = "mqtt.hsl.fi" 
@@ -114,10 +114,11 @@ def start_subscriber(conn_pool, conn_key, conn):
 
 
 def start_threads():
+    time.sleep(4)
     conn_pool = connect_to_db()
     if not conn_pool:
-        print("Retrying connection after 10 seconds...")
-        time.sleep(10)
+        logger.info("Retrying connection...")
+        time.sleep(7) 
         conn_pool = connect_to_db()
 
     conn_key = "poolkey"
@@ -125,15 +126,15 @@ def start_threads():
 
     #time.sleep(1)
     #logger.info("The Threads getting ready to be executed ..")
-    # Threading the subscriber class independently so that the class can run on max 10 threads simultaneously, while also the Flask app can run simultaneously when the app is running
-    executor_subscriber_class = ThreadPoolExecutor(max_workers=10)
+    # Threading the subscriber class independently so that the class can run on max 5 threads simultaneously, while also the Flask app can run simultaneously when the app is running
+    executor_subscriber_class = ThreadPoolExecutor(max_workers=5)
     #executor_subscriber_class.daemon = True 
     executor_subscriber_class.submit(start_subscriber, conn_pool, conn_key, conn)
 
     return executor_subscriber_class
 
 
-
+#The base API, with the most basic information about each bus
 @app.route('/locations') # By default GET to retrieve data
 def get_all_bus_locations():
     """
@@ -156,11 +157,6 @@ def get_all_bus_locations():
                 bus.operator AS operator
             FROM bus_status bs
             LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
-            INNER JOIN (
-                SELECT vehicle_number, MAX(tsi) AS max_tsi
-                FROM bus_status
-                GROUP BY vehicle_number
-            ) bs_max ON bs.vehicle_number = bs_max.vehicle_number AND bs.tsi = bs_max.max_tsi
             ORDER BY tsi DESC
             LIMIT 300;
         """)
@@ -215,174 +211,8 @@ def get_all_bus_locations():
             "error": str(e)
         }
         return jsonify(error_message), 500
-    
 
-@app.route('/locations/next_stop') # By default GET to retrieve data, doesen't PUT/POST or change the data
-def last_location_next_stop():
-    """
-    This method get the last data about each bus and show their current location with the next stop, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
-    - Input: none
-    - Output: Return json data about last known locations with their next stop
-    """
-    logger.info("Syncing data for next stop to JSON API ...")
-    try: 
-        cursor.execute("""
-            SELECT DISTINCT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop
-            FROM bus_status AS bs
-            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
-            LEFT JOIN stop ON stop.id = bs.stop_id
-            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
-            INNER JOIN (
-                SELECT vehicle_number, MAX(tsi) AS max_tsi
-                FROM bus_status
-                GROUP BY vehicle_number
-            ) bs_max ON bs.vehicle_number = bs_max.vehicle_number AND bs.tsi = bs_max.max_tsi
-            ORDER BY bs.tsi DESC
-            LIMIT 300
-            ;
-            """)
-        results = cursor.fetchall()
-        counter_result = 0
-        if len(results) == 0:
-            return jsonify({"message": "No vehicle found"})
-        else: 
-            bus_data = []
-            for result in results:
-                counter_result += 1
-                bus_dict = {
-                    "telemetry": {
-                        "vehicle": {
-                            "number" : result[1],
-                            "operator": result[17],
-                            "current_location": result[5],
-                            "latitude": result[6],
-                            "longitude": result[7],
-                            "status": result[18],
-                        },
-
-                        "timestamp":{
-                            "tsi": result[2],
-                            "utc_formatted": str(result[3]),
-                        },
-
-                        "route": {
-                            "number": result[4],
-                            "destination": result[9],
-                        },
-
-                        "next_stop":{
-                            "name": result[13],
-                            "address": result[14],
-                            "lat_long": f"{result[15]}, {result[16]}",
-                            "arrivel_time_to_the_stop": str(result[19]),
-                        },
-                    }
-                }
-                json_bus = json.dumps(bus_dict, ensure_ascii=False)
-                bus_data.append(json_bus)
-
-            logger.info("{} bus data retrieved from location fetch with next stop".format(counter_result))
-            print(' ')
-
-            # Combine the list of JSON strings into a single JSON array
-            response_json = "[" + ",".join(bus_data) + "]"
-
-            # Parse the JSON array into a Python object
-            response_data = json.loads(response_json)
-
-            # Return the Python object as a JSON response with UTF-8 encoding
-            return Response(json.dumps(response_data, ensure_ascii=False, indent=4).encode('utf-8'), mimetype='application/json; charset=utf-8')
-    except Exception as e:
-        error_message = {
-            "status": "error",
-            "error": str(e)
-        }
-        return jsonify(error_message), 500
-   
-
-@app.route('/locations/logger') 
-def bus_logger():
-    """
-    This method logs the data about each bus and show their location and all data related, logged into the db, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
-    - Input: none
-    - Output: Return json data about last known locations with their next stop
-    """
-    logger.info("Syncing data for locations logger to JSON API ...")
-    try: 
-        cursor.execute("""
-            SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop
-            FROM bus_status AS bs
-            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
-            LEFT JOIN stop ON stop.id = bs.stop_id
-            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
-            INNER JOIN (
-                SELECT vehicle_number, MAX(tsi) AS max_tsi
-                FROM bus_status
-                GROUP BY vehicle_number
-            ) bs_max ON bs.vehicle_number = bs_max.vehicle_number 
-            ORDER BY bs.tsi DESC
-            LIMIT 1000
-            ;
-            """)
-        results = cursor.fetchall()
-        counter_result = 0
-        if len(results) == 0:
-            return jsonify({"message": "No vehicle found"})
-        else: 
-            bus_data = []
-            for result in results:
-                counter_result += 1
-                bus_dict = {   
-                    "telemetry": {
-                        "vehicle": {
-                            "number" : result[1],
-                            "operator": result[17],
-                            "current_location": result[5],
-                            "latitude": result[6],
-                            "longitude": result[7],
-                            "status": result[18],
-                        },
-
-                        "timestamp": {
-                            "tsi": result[2],
-                            "utc_formatted": str(result[3]),
-                        },
-
-                        "route": {
-                            "number": result[4],
-                            "destination": result[9],
-                        },
-
-                        "next_stop":{
-                            "name": result[13],
-                            "address": result[14],
-                            "lat_long": f"{result[15]}, {result[16]}",
-                            "arrival_time_to_the_stop": str(result[19]),
-                        }
-                    }
-                }
-                json_bus = json.dumps(bus_dict, ensure_ascii=False)
-                bus_data.append(json_bus)
-
-            logger.info("{} bus data retrieved from bus logger fetch".format(counter_result))
-            print(' ')
-
-            # Combine the list of JSON strings into a single JSON array
-            response_json = "[" + ",".join(bus_data) + "]"
-
-            # Parse the JSON array into a Python object
-            response_data = json.loads(response_json)
-
-            # Return the Python object as a JSON response with UTF-8 encoding
-            return Response(json.dumps(response_data, ensure_ascii=False, indent=4).encode('utf-8'), mimetype='application/json; charset=utf-8')
-
-    except Exception as e:
-        error_message = {
-            "status": "error",
-            "error": str(e)
-        }
-        return jsonify(error_message), 500
-
+# locations/latest is a improvement of /locations where we only show the most recent updated for each vehicle number
 @app.route('/locations/latest') # Retrieve last updated bus for each vehicle number by tsi
 def last_updated():
     """
@@ -449,6 +279,186 @@ def last_updated():
             "error": str(e)
         }
         return jsonify(error_message), 500
+    
+
+@app.route('/locations/next_stop/logger') 
+def bus_logger():
+    """
+    This method logs the data about each bus and show their location and all data related, logged into the db, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
+    - Input: none
+    - Output: Return json data about last known locations with their next stop
+    """
+    logger.info("Syncing data for locations logger to JSON API ...")
+    try: 
+        cursor.execute("""
+            SELECT DISTINCT
+                bs.vehicle_number,
+                bs.tsi,
+                bs.route_number,
+                bs.utc_timestamp,
+                bs.current_location,
+                bs.destination,
+                s.stop_name AS next_stop,
+                s.stop_adress,
+                s.latitude,
+                s.longitude,
+                b.operator,
+                se.status,
+                se.arrival_time_to_the_stop,
+                bs.latitude,
+                bs.longitude
+            FROM
+                bus_status AS bs
+            INNER JOIN
+                stop AS s ON s.id = bs.stop_id
+            LEFT JOIN
+                bus AS b ON b.vehicle_number = bs.vehicle_number
+            LEFT JOIN
+                stop_event AS se ON se.id = s.stop_event
+            ORDER BY bs.tsi DESC
+            LIMIT 1000;
+            """)
+        results = cursor.fetchall()
+        counter_result = 0
+        if len(results) == 0:
+            return jsonify({"message": "No vehicle found"})
+        else: 
+            bus_data = []
+            for result in results:
+                counter_result += 1
+                bus_dict = {
+                    "telemetry": {
+                        "vehicle": {
+                            "number" : result[0],
+                            "operator": result[10],
+                            "current_location": result[4],
+                            "latitude": result[13],
+                            "longitude": result[14],
+                            "status": result[11],
+                        },
+
+                        "timestamp": {
+                            "tsi": result[1],
+                            "utc_formatted": str(result[3]),
+                        },
+
+                        "route": {
+                            "number": result[2],
+                            "destination": result[5],
+                        },
+
+                        "next_stop": {
+                            "name": result[6],
+                            "address": result[7],
+                            "lat_long": f"{result[8]}, {result[9]}",
+                            "arrival_time_to_the_stop": str(result[12])
+                        },
+                    }
+                }
+                json_bus = json.dumps(bus_dict, ensure_ascii=False)
+                bus_data.append(json_bus)
+
+            logger.info("{} bus data retrieved from bus logger fetch".format(counter_result))
+            print(' ')
+
+            # Combine the list of JSON strings into a single JSON array
+            response_json = "[" + ",".join(bus_data) + "]"
+
+            # Parse the JSON array into a Python object
+            response_data = json.loads(response_json)
+
+            # Return the Python object as a JSON response with UTF-8 encoding
+            return Response(json.dumps(response_data, ensure_ascii=False, indent=4).encode('utf-8'), mimetype='application/json; charset=utf-8')
+
+    except Exception as e:
+        error_message = {
+            "status": "error",
+            "error": str(e)
+        }
+        return jsonify(error_message), 500
+
+#/next_stop is an improvement of /logger with same data shown, but with the most recent, sorted by the highest tsi for each vehicle
+@app.route('/locations/next_stop') # By default GET to retrieve data, doesen't PUT/POST or change the data
+def last_location_next_stop():
+    """
+    This method get the last data about each bus and show their current location with the next stop, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
+    - Input: none
+    - Output: Return json data about last known locations with their next stop
+    """
+    logger.info("Syncing data for next stop to JSON API ...")
+    try: 
+        cursor.execute("""
+
+            WITH LatestBus AS (
+            SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop, ROW_NUMBER() OVER (PARTITION BY bs.vehicle_number ORDER BY bs.tsi DESC) AS rn
+            FROM bus_status bs
+            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
+            LEFT JOIN stop ON stop.id = bs.stop_id
+            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
+            )
+            SELECT * FROM LatestBus 
+            WHERE rn = 1
+            LIMIT 300;
+
+            """)
+        results = cursor.fetchall()
+        counter_result = 0
+        if len(results) == 0:
+            return jsonify({"message": "No vehicle found"})
+        else: 
+            bus_data = []
+            for result in results:
+                counter_result += 1
+                bus_dict = {
+                    "telemetry": {
+                        "vehicle": {
+                            "number" : result[1],
+                            "operator": result[17],
+                            "current_location": result[5],
+                            "latitude": result[6],
+                            "longitude": result[7],
+                            "status": result[18],
+                        },
+
+                        "timestamp":{
+                            "tsi": result[2],
+                            "utc_formatted": str(result[3]),
+                        },
+
+                        "route": {
+                            "number": result[4],
+                            "destination": result[9],
+                        },
+
+                        "next_stop":{
+                            "name": result[13],
+                            "address": result[14],
+                            "lat_long": f"{result[15]}, {result[16]}",
+                            "arrivel_time_to_the_stop": str(result[19]),
+                        },
+                    }
+                }
+                json_bus = json.dumps(bus_dict, ensure_ascii=False)
+                bus_data.append(json_bus)
+
+            logger.info("{} bus data retrieved from location fetch with next stop".format(counter_result))
+            print(' ')
+
+            # Combine the list of JSON strings into a single JSON array
+            response_json = "[" + ",".join(bus_data) + "]"
+
+            # Parse the JSON array into a Python object
+            response_data = json.loads(response_json)
+
+            # Return the Python object as a JSON response with UTF-8 encoding
+            return Response(json.dumps(response_data, ensure_ascii=False, indent=4).encode('utf-8'), mimetype='application/json; charset=utf-8')
+    except Exception as e:
+        error_message = {
+            "status": "error",
+            "error": str(e)
+        }
+        return jsonify(error_message), 500
+   
 
 
 @app.route('/vehicles/<int:vehicle_number>') # By default method = GET to retrieve data, doesen't PUT/POST or change the data

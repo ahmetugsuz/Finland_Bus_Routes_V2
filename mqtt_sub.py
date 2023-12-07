@@ -9,6 +9,7 @@ import json
 from geopy.geocoders import Nominatim # libary to get the location with lat and long 
 from geopy.exc import GeocoderUnavailable
 from graphqlclient import GraphQLClient # libary to seek the stop ID of a position
+import gql.transport.exceptions
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from gql.transport.requests import RequestsHTTPTransport
@@ -39,10 +40,59 @@ class MQTTSubscriber:
         "pde": "Ready to depart from a stop", "wait": "Waiting at a stop", "dl": "Time offset from schedule", "start": "Start time"}
 
         # Dict to get the operator name based on their ID  
-        self.oper_dict = {6: "Oy Pohjolan Liikenne Ab", 12: "Helsingin Bussiliikenne Oy", 17: "Tammelundin Liikenne Oy", 18: "Oy Pohjolan Liikenne Ab", 20: "Bus Travel Åbergin Linja Oy",
-        21: "Bus Travel Oy Reissu Ruoti", 22: "Nobina Finland Oy", 30: "Savonlinja Oy", 36: "Nurmijärven Linja Oy", 40: "HKL-Raitioliikenne", 47: "Taksikuljetus Oy", 50: "HKL-Metroliikenne",
-        51: "Korsisaari Oy", 54: "V-S Bussipalvelut Oy", 58: "Koillisen Liikennepalvelut Oy", 60: "Suomenlinnan Liikenne Oy", 59: "Tilausliikenne Nikkanen Oy", 89: "Metropolia", 90: "VR Oy",
-        130: "Matkahuolto", 195: "Siuntio"}
+        self.oper_dict = {
+        6: "Oy Pohjolan Liikenne Ab", 
+        12: "Helsingin Bussiliikenne Oy", 
+        17: "Tammelundin Liikenne Oy", 
+        18: "Oy Pohjolan Liikenne Ab",
+        20: "Bus Travel Åbergin Linja Oy",
+        21: "Bus Travel Oy Reissu Ruoti",
+        22: "Nobina Finland Oy", 
+        30: "Savonlinja Oy",
+        36: "Nurmijärven Linja Oy",
+        40: "HKL-Raitioliikenne",
+        47: "Taksikuljetus Oy", 
+        50: "HKL-Metroliikenne",
+        51: "Korsisaari Oy", 
+        54: "V-S Bussipalvelut Oy", 
+        58: "Koillisen Liikennepalvelut Oy", 
+        59: "Tilausliikenne Nikkanen Oy", 
+        60: "Suomenlinnan Liikenne Oy", 
+        64: "Lappeenrannan Linkki Oy",
+        89: "Metropolia", 
+        90: "VR Oy",
+        130: "Matkahuolto", 
+        195: "Siuntio",
+        64: "Lappeenrannan Linkki Oy",
+        200: "Tammisaaren Liikenne Oy",
+        215: "Forssan Liikenne Oy",
+        230: "Joensuun Bussiliikenne Oy",
+        245: "Oy Kvarken Lines Ltd",
+        250: "Pietarsaaren Linja Oy",
+        265: "Kokkolan Liikenne Oy",
+        280: "Vaasan Paikallisliikenne Oy",
+        295: "Kajaanin Paikallisliikenne Oy",
+        310: "Oulun joukkoliikenne",
+        325: "Rovaniemen Paikallisliikenne Oy",
+        340: "Kemin Taksiliikenne Oy",
+        355: "Tornion Kaupungin Liikenne",
+        370: "Kuopion Liikenne Oy",
+        385: "Jyväskylän Liikenne Oy",
+        400: "Lappeenrannan Linja Oy",
+        415: "Kotkan Paikallisliikenne Oy",
+        430: "Mikkeli Region Transport (Mikkelin Seudun Palveluliikenne)",
+        445: "Lahden Liikenne Oy",
+        460: "Turku Region Public Transport (Turun seudun joukkoliikenne)",
+        475: "Pori Linjat Oy",
+        490: "Rauman Liikenne Oy",
+        505: "Kokkolan paikallisliikenne Oy",
+        520: "Seinäjoen Joukkoliikenne Oy",
+        535: "Vaasan Paikallisliikenne Oy",
+        550: "Tampereen Kaupungin Liikenne",
+        565: "Riihimäen Kaupunkiliikenne Oy",
+        580: "Hämeenlinnan Kaupunkiliikenne",
+        595: "Porin Linjat Oy"
+        }
 
         self.geolocator = Nominatim(user_agent="my_app") # creating a geolocater variable on my app
 
@@ -83,7 +133,7 @@ class MQTTSubscriber:
 
         self.conn.commit()
 
-    def get_next_stop_data(self, next_stop_name):
+    def get_next_stop_data(self, next_stop_name, max_retries=3):
         # Query to get the stop location from GraphQL
         graph_query_stop = """
                 query GetStop($id: String!) {
@@ -99,24 +149,57 @@ class MQTTSubscriber:
         try:
             document = gql(graph_query_stop)
             #print("Query is valid.")
-        except Exception as e: # If the query is invalid 
-            print(f"Query is invalid: {e}")
-
-        # Define the variables for the GraphQL query
-        variables = {
-            "id": "HSL:"+next_stop_name
-        }
+            # Define the variables for the GraphQL query
+            variables = {
+                "id": "HSL:"+next_stop_name
+            }
 
 
-        # Execute the GraphQL query with the document and variables
-        result_next_stop = self.graph_client.execute(document, variables)
+            # Execute the GraphQL query with the document and variables
+            result_next_stop = self.graph_client.execute(document, variables)
 
-        if result_next_stop is not None and 'stop' in result_next_stop:
-            stop_data = result_next_stop['stop']
-            return stop_data  # Return the stop data
-        else:
-            print("Failed to retrieve stop data.")
+            if result_next_stop is not None and 'stop' in result_next_stop:
+                stop_data = result_next_stop['stop']
+                return stop_data  # Return the stop data
+            else:
+                print("Failed to retrieve stop data.")
+                return None
+        except gql.transport.exceptions.TransportServerError as tse:
+            # Handle TransportServerError (502 Bad Gateway or 504 Gateway Timeout)
+            print(f"TransportServerError occurred: {tse}")
+            print(".")
+            print(".")
+            print(".")
+            print("Handling the error..")
+            # Retry logic
+            if max_retries > 0:
+                print("Retrying query in 3 seconds...")
+                time.sleep(3)
+                return self.get_next_stop_data(next_stop_name, max_retries=max_retries-1)
+            else:
+                print("Maximum retries reached. Unable to fetch data.")
+                return None
+
+        except gql.transport.exceptions.TransportQueryError as tqe:
+            # Handle TransportQueryError (e.g., GraphQL query syntax error)
+            print(f"TransportQueryError occurred: {tqe}")
+            print(".")
+            print(".")
+            print(".")
+            print("Handling the error.. Setting everything back to default")
+            print("The application is still running")
             return None
+
+        except Exception as e:
+            # Catch other exceptions
+            print(f"An unexpected error occurred: {e}")
+            print(".")
+            print(".")
+            print(".")
+            print("Handling the error.. Setting everything back to default")
+            print("The application is still running")
+            return None
+
     
     def get_next_stop_adress(self, stop_name: str, next_stop_adress: list):
         # stop name could be in next_stop_adress, so if u want to do something with it, do it here!
@@ -222,27 +305,33 @@ class MQTTSubscriber:
             stop_lat = 0.0  # Initialize with default latitude
             stop_long = 0.0  # Initialize with default longitude
             # Extracting the values from the dictionary returned by execute() -> result_next_stop
-            if result_next_stop is not None:
-                stop_name = result_next_stop['name']  # result_next_stop['name'] 
-                stop_lat = result_next_stop['lat'] 
-                stop_long = result_next_stop['lon'] 
-                # print(f"Stop Name: {stop_name}, Latitude: {stop_lat}, Longitude: {stop_long}")
-            else:
-                print("Stop data is not available.")
-            
-            # Getting the exact location/adress for the next stop  
-            next_stop_adress = self.reverse_geocode_with_retry(stop_lat, stop_long) 
-            final_next_stop = None
-            if next_stop_adress:
-                next_stop_adress = next_stop_adress.address
-                next_stop_adress = next_stop_adress.split(", ")
-                final_next_stop = self.get_next_stop_adress(result_next_stop['name'], next_stop_adress)
-            if not next_stop_adress: # if it returned none value or not the adress, set it to be empty
+            try: 
+                if result_next_stop is not None:
+                    stop_name = result_next_stop['name']  # result_next_stop['name'] 
+                    stop_lat = result_next_stop['lat'] 
+                    stop_long = result_next_stop['lon'] 
+                    # print(f"Stop Name: {stop_name}, Latitude: {stop_lat}, Longitude: {stop_long}")
+                else:
+                    print("Stop data is not available.")
+                
+                # Getting the exact location/adress for the next stop  
+                next_stop_adress = self.reverse_geocode_with_retry(stop_lat, stop_long) 
+                final_next_stop = None
+                if next_stop_adress and stop_name:
+                    next_stop_adress = next_stop_adress.address
+                    next_stop_adress = next_stop_adress.split(", ")
+                    final_next_stop = self.get_next_stop_adress(stop_name, next_stop_adress)
+                if not next_stop_adress or not stop_name: # if it returned none value or not the adress, set it to be empty
+                    next_stop_adress = ""
+            except KeyError:
+                final_next_stop = None
                 next_stop_adress = ""
+                print("KeyError occurred while processing next stop. Setting everything back to default, the application is still running.")
+            except Exception as e:
+                final_next_stop = None
+                next_stop_adress = ""
+                print(f"An unexpected error occurred: {e}. Setting everything back to default, the application is still running.")
 
-            if final_next_stop == None:
-                print("WARNING: Couldnt find next stop")
-                final_next_stop = ""
 
             if (payload_dict["loc"] == "ODO"): 
                 if lat is not None and long is not None:
@@ -328,37 +417,52 @@ class MQTTSubscriber:
             if topic_parts[4] == "dep": # we don't need to show what next stop here is, as it already departing from the stop, and showing current location, while next stop is not defined yet
                 stop_name = "" # can be confusing to show next stop, so we set it as empty, while status of it telling what the situation is, it gives enough information to the user
 
+            try: 
+                if payload_dict["oper"] in self.oper_dict:
+                    self.cur.execute("INSERT INTO bus (vehicle_number, operator) VALUES (%s, %s) ON CONFLICT (vehicle_number) DO UPDATE SET operator = EXCLUDED.operator WHERE bus.vehicle_number = EXCLUDED.vehicle_number", (vehicle_number, self.oper_dict[payload_dict["oper"]]))
+                else:
+                    self.cur.execute("INSERT INTO bus (vehicle_number, operator) VALUES (%s, %s) ON CONFLICT (vehicle_number) DO UPDATE SET operator = EXCLUDED.operator WHERE bus.vehicle_number = EXCLUDED.vehicle_number", (vehicle_number, "Unknown"))
 
-            self.cur.execute("INSERT INTO bus (vehicle_number, operator) VALUES (%s, %s) ON CONFLICT (vehicle_number) DO UPDATE SET operator = EXCLUDED.operator WHERE bus.vehicle_number = EXCLUDED.vehicle_number", (vehicle_number, self.oper_dict[payload_dict["oper"]]))
-            self.conn.commit() # committing it, after inserts, while there are relation betweens the tables, it needs to be updated 
+                self.conn.commit() # committing it, after inserts, while there are relation betweens the tables, it needs to be updated 
 
-            if payload_dict["stop"] is not None:
-                self.cur.execute("INSERT INTO stop_event (id, status, arrival_time_to_the_stop) VALUES (%s, %s, %s) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, arrival_time_to_the_stop = EXCLUDED.arrival_time_to_the_stop", (payload_dict["stop"], status, time_string_next_stop))
+                if payload_dict["stop"] is not None:
+                    self.cur.execute("INSERT INTO stop_event (id, status, arrival_time_to_the_stop) VALUES (%s, %s, %s) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, arrival_time_to_the_stop = EXCLUDED.arrival_time_to_the_stop", (payload_dict["stop"], status, time_string_next_stop))
+                    self.conn.commit()
+
+                self.cur.execute("INSERT INTO stop (tsi, stop_event, stop_name, stop_adress, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s)", (payload_dict["tsi"], payload_dict["stop"], stop_name, final_next_stop, stop_lat, stop_long))
                 self.conn.commit()
 
-            self.cur.execute("INSERT INTO stop (tsi, stop_event, stop_name, stop_adress, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s)", (payload_dict["tsi"], payload_dict["stop"], stop_name, final_next_stop, stop_lat, stop_long))
-            self.conn.commit()
 
+                # Check if the bus record exists in the bus table
+                self.cur.execute("SELECT 1 FROM bus WHERE vehicle_number = %s", (vehicle_number,))
+                bus_exists = self.cur.fetchone()
 
-            # Check if the bus record exists in the bus table
-            self.cur.execute("SELECT 1 FROM bus WHERE vehicle_number = %s", (vehicle_number,))
-            bus_exists = self.cur.fetchone()
+                self.cur.execute("SELECT 1 FROM stop WHERE id = (SELECT stop.id FROM stop ORDER BY stop.id DESC LIMIT 1)")
+                stop_id_exists = self.cur.fetchone()
+                if bus_exists and stop_id_exists:
+                    # Both the bus record and stop.id exist, so you can proceed with the insertion
+                    self.cur.execute("INSERT INTO bus_status (vehicle_number, tsi, utc_timestamp, route_number, current_location, latitude, longitude, stop_id, destination) SELECT %s, %s, %s, %s, %s, %s, %s, (SELECT stop.id FROM stop ORDER BY stop.id DESC LIMIT 1), %s",
+                                    (vehicle_number, payload_dict["tsi"], utc_datetime_obj, payload_dict["desi"], current_address, lat, long, topic_dict["destination"]))
+                    self.conn.commit()
+                else:
+                    # Either the bus record or stop.id (or both) do not exist, handle the error
+                    if not bus_exists:
+                        print(f"Bus record with vehicle_number {vehicle_number} does not exist in the bus table. Skipping insertion into bus_status.")
+                    if not stop_id_exists:
+                        print("stop.id does not exist in the stop table. Skipping insertion into bus_status.")
 
-            self.cur.execute("SELECT 1 FROM stop WHERE id = (SELECT stop.id FROM stop ORDER BY stop.id DESC LIMIT 1)")
-            stop_id_exists = self.cur.fetchone()
-            if bus_exists and stop_id_exists:
-                # Both the bus record and stop.id exist, so you can proceed with the insertion
-                self.cur.execute("INSERT INTO bus_status (vehicle_number, tsi, utc_timestamp, route_number, current_location, latitude, longitude, stop_id, destination) SELECT %s, %s, %s, %s, %s, %s, %s, (SELECT stop.id FROM stop ORDER BY stop.id DESC LIMIT 1), %s",
-                                (vehicle_number, payload_dict["tsi"], utc_datetime_obj, payload_dict["desi"], current_address, lat, long, topic_dict["destination"]))
                 self.conn.commit()
-            else:
-                # Either the bus record or stop.id (or both) do not exist, handle the error
-                if not bus_exists:
-                    print(f"Bus record with vehicle_number {vehicle_number} does not exist in the bus table. Skipping insertion into bus_status.")
-                if not stop_id_exists:
-                    print("stop.id does not exist in the stop table. Skipping insertion into bus_status.")
 
-            self.conn.commit()
+
+            except (KeyError, TypeError, psycopg2.Error, Exception) as e:
+                error_type = type(e).__name__
+                print(f"{error_type} occurred: {e}")
+                print(".")
+                print(".")
+                print(".")
+                print("Reporting the error.. Handling the error.. Setting everything back to default")
+                print("The application is still running")
+
 
 
 

@@ -1,18 +1,18 @@
 # Finland Bus Routes 
 
-Welcome to the Finland Bus Routes (version 2.0) project! This application provides a service to consume telemetry from the MQTT broker server mqtt.hsl.fi, store the telemetry, and make it searchable through an API. The API is accessible through HTTP and provides information about the location, next stop of the buses in Finland and more via this application.
+Welcome to the Finland Bus Routes (version 2.0) project! This application consumes telemetry from the MQTT broker server mqtt.hsl.fi, stores the telemetry data, and makes it searchable through an API. The API, accessible via HTTP, provides information about the location and next stops for the buses in the greater Helsinki area. All this information can be accessed through this application.
 
 ## Version 2 Updates
 
 Discover the enhanced features and improvements in Finland Bus Routes Version 2.0:
 
-- **Faster:** Up to 10x more threads are now working simultaneously to fetch the most recent data.
+- **Faster:** Up to 5x more threads are now working simultaneously to fetch the most recent data.
   
 - **Reliable:** Improved error handling and resolution of many bugs for a more dependable experience.
 
 - **Optimized Code:** Version 2 incorporates optimizations in the codebase, enhancing overall performance and efficiency. The streamlined and optimized code ensures faster execution, reduced resource utilization, and a more responsive system, contributing to a smoother user experience.
   
-- **Constructive and Cleaner API Objects:** Version 2 introduces a more structured and well-organized API, making it easier to understand. The enhanced structure includes additional information, contributing to the development of a more robust and helpful backend for developers, to make it a more precise and user-friendly experience.
+- **Constructive and Cleaner API Objects:** Version 2 introduces a more structured and well-organized API, making it easier to understand. The enhanced structure includes additional information, contributing to the development of a more robust and helpful backend for developers.
 
 - **Timing of Cleanup:** Thanks to the latest robust error handling mechanisms, the cleanup application for the database is now scheduled every 6 minutes as a standard option. This enhancement not only ensures a more streamlined data maintenance process but also provides you with a richer dataset to explore during the testing phase before it becomes your real-life bus tracking app. 
 
@@ -50,13 +50,13 @@ This project includes the following features:
 
 ## Overview <a name="overview"></a>
 
-**Finland Bus Routes** is a comprehensive service designed to capture real-time telemetry data from the MQTT server, mqtt.hsl.fi. This service not only gathers telemetry data but also stores it for future use, making it easily accessible via a user-friendly API. Its primary focus is to provide up-to-date information about bus locations, upcoming stops, and more, specifically for the bus network in Finland. It also includes a cleanup program that manages database memory. This feature can be particularly useful when the intended use of this program is for a short or long duration, allowing you to set up a time management schedule for cleaning up the database.    
+**Finland Bus Routes** is a comprehensive service designed to capture real-time telemetry data from the MQTT server, mqtt.hsl.fi. This service not only gathers telemetry data but also stores it for future use, making it easily accessible via a user-friendly API. Its primary focus is to provide up-to-date information about bus locations, upcoming stops, and more, specifically for the bus network in the region of Helsinki. It also includes a cleanup program that manages database memory. This feature can be particularly useful when the intended use of this program is for a short or long duration, allowing you to set up a time management schedule for cleaning up the database.    
 
-**Purpose:** This project was created to help commuters, travelers, and developers access up-to-date information about bus routes and schedules in Finland. My goal is to provide an easy-to-use and reliable source of data for a better public transportation experience. If desired, I also aim to develop a frontend for this backend service, creating a full-stack application that can be widely utilized.  
+**Purpose:** This project was created to help commuters, travelers, and developers access up-to-date information about bus routes and schedules in the greater Helsinki. My goal is to provide an easy-to-use and reliable source of data for a better public transportation experience. If desired, I also aim to develop a frontend for this backend service, creating a full-stack application that can be widely utilized.  
 
-**Key Benefits:** With Finland Bus Routes, users can quickly find information about buses near their location, search for buses based on specific locations in Finland using their city and street names within a specified radius, check the every record stored of a bus by their vehicle number, retrieve current location, route number, destination, operator, status, arrival time to the next stop, and more for every bus that is currently in active status in Finland.  
+**Key Benefits:** With Finland Bus Routes, users can quickly find information about buses near their location, search for buses based on specific locations in greater Helsinki, using their city and street names within a specified radius, check the every record stored of a bus by their vehicle number, retrieve current location, route number, destination, operator, status, arrival time to the next stop, and more for every bus that is currently in active status in Helsinki.  
 
-**Audience:** This project is designed for public transportation enthusiasts, developers, and anyone looking to streamline their bus travel experience in Finland.  
+**Audience:** This project is designed for public transportation enthusiasts, developers, and anyone looking to streamline their bus travel experience in Helsinki region.  
 
 **License:** This project is open-source and available under the [CC BY-NC](LICENSE), with restriction on commercial use.  
 
@@ -182,8 +182,10 @@ Once the containers are up and running, you can access the API endpoints by navi
 **Note:** By default, the API limits the response to the latest 300 updates for each endpoint to ensure efficient data retrieval. However, you can adjust this limitation if needed. Additionally, the data is periodically cleaned up by a cleanup application, and you can configure the cleanup interval based on your usage preferences, from [cleanup configuration](#configuration). For development testing or real-life use, the cleanup interval and data limitation can be customized according to your requirements.   
 The following endpoints are available:   
 
+***Hint!*** When the application is running, come back here and make use of the API-endpoint links below by clicking on them, as long as they are not marked with `{}`. If they are, it means a paramter that you need to set a value for, either a place name or a number. 
+
 - **[GET] http://localhost:5001/locations**  <a name="locations"></a>
-This endpoint returns JSON data of locations for active buses in Finland, displaying the most recent updates for each bus.     
+This endpoint returns JSON data of locations for active buses in the Helsinki region.   
     **Example response for API endpoint `/locations`:**   
  
     ```json
@@ -208,8 +210,12 @@ This endpoint returns JSON data of locations for active buses in Finland, displa
     }
     ```  
 
+- **[GET] http://localhost:5001/locations/latest**  
+This endpoint accumulates and provides the most recently available recorded data for each active bus in the Helsinki region. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies. This endpoint is an improvement of the base API-endpoint `/locations`, showing the same data, in same JSON format but with the most recent updates for each vehicle. 
+    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/locations`](#locations) API-endpoint as shown above.  
+
 - **[GET] http://localhost:5001/locations/next_stop**  <a name="next_stop"></a>
-This endpoint returns JSON data of locations and their next stop information for active buses in Finland, displaying the most recent updates for each bus.   
+This endpoint returns JSON data of locations and their next stop information for active buses in Helsinki, displaying the most recent updates for each bus.   
     **Example response for API endpoint `/next_stop`:**
 
     ```json
@@ -241,14 +247,11 @@ This endpoint returns JSON data of locations and their next stop information for
     }
     ```
 
-- **[GET] http://localhost:5001/locations/logger**  
-This historical endpoint provides a log of all related data for each active bus in Finland. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time.  
+- **[GET] http://localhost:5001/locations/next_stop/logger**  
+This historical endpoint provides a log of all related data for each active bus in the Helsinki region. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time. 
+The endpoint is similiar to the `/locations/next_stop` endpoint, not only displaying recent data but also presenting historical data for each vehicle. 
     **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/next_stop`](#next_stop) API-endpoint as shown above. 
 
-
-- **[GET] http://localhost:5001/locations/latest**  
-This endpoint accumulates and provides the most recently available recorded data for each active bus in Finland. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies.  
-    **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/locations`](#locations) API-endpoint as shown above.  
 
 - **[GET] http://localhost:5001/vehicles/{vehicle_number}**   
     This endpoint allows users to retrieve specific information for a vehicle by providing its unique vehicle number as a parameter in the URL.  
@@ -257,34 +260,34 @@ This endpoint accumulates and provides the most recently available recorded data
     - `vehicle_number` (integer): The unique identifier for the vehicle. Replace {vehicle_number} in the URL with the actual vehicle number.  
 
     **Example:**  
-    To retrieve information for a vehicle with the number 1122, make a GET request to:  
-    - http://localhost:5001/vehicles/1122  
+    To retrieve information for a vehicle with the number 1375, make a GET request to:  
+    - http://localhost:5001/vehicles/1375  
 
-    **Example response for vehicle number 1122:**   
+    **Example response for vehicle number 1375:**   
     ```json
     [
         {
             "telemetry": {
                 "vehicle": {
-                    "number": 1122,
+                    "number": 1375,
                     "operator": "Nobina Finland Oy",
-                    "current_location": "37, Koulutie, Itä-Hakkila, Uusimaa",
-                    "latitude": 60.291049,
-                    "longitude": 25.120028,
+                    "current_location": "Suutarilantie, Siltamäki, Suutarila, Uusimaa",
+                    "latitude": 60.279989,
+                    "longitude": 25.010392,
                     "status": null
                 },
                 "timestamp": {
-                    "tsi": 1701529543,
-                    "utc_formatted": "15:05:43"
+                    "tsi": 1701872290,
+                    "utc_formatted": "14:18:10"
                 },
                 "route": {
-                    "number": "587",
-                    "destination": "Mellunmäki(M)"
+                    "number": "562",
+                    "destination": "Itäkeskus (M)"
                 },
                 "next_stop": {
-                    "name": "Äimäkuja",
-                    "address": "103, Hakunilantie, Itä-Hakkila",
-                    "lat_long": "60.2906, 25.12053",
+                    "name": "Hannukselanpolku",
+                    "address": "Suutarilantie, Siltamäki, Suutarila",
+                    "lat_long": "60.27948, 25.00944",
                     "arrival_time_to_the_stop": "None"
                 }
             }
@@ -292,26 +295,26 @@ This endpoint accumulates and provides the most recently available recorded data
         {
             "telemetry": {
                 "vehicle": {
-                    "number": 1122,
+                    "number": 1375,
                     "operator": "Nobina Finland Oy",
-                    "current_location": "Mannerheimintie, Taka-Töölö, Eteläinen suurpiiri, Uusimaa",
-                    "latitude": 60.180032,
-                    "longitude": 24.928483,
-                    "status": null
+                    "current_location": "Suutarilantie, Siltamäki, Suutarila, Uusimaa",
+                    "latitude": 60.27971,
+                    "longitude": 25.009967,
+                    "status": "Arrives inside of a stop radius"
                 },
                 "timestamp": {
-                    "tsi": 1701531822,
-                    "utc_formatted": "15:43:42"
+                    "tsi": 1701872294,
+                    "utc_formatted": "14:18:14"
                 },
                 "route": {
-                    "number": "300",
-                    "destination": "Myyrmäki"
+                    "number": "562",
+                    "destination": "Itäkeskus (M)"
                 },
                 "next_stop": {
-                    "name": "Töölön kisahalli",
-                    "address": "YP - Parturi Töölö, 19, Mannerheimintie",
-                    "lat_long": "60.18433, 24.92357",
-                    "arrival_time_to_the_stop": "None"
+                    "name": "Hannukselanpolku",
+                    "address": "Suutarilantie, Siltamäki, Suutarila",
+                    "lat_long": "60.27948, 25.00944",
+                    "arrival_time_to_the_stop": "14:17:00"
                 }
             }
         }
@@ -326,8 +329,8 @@ This endpoint accumulates and provides the most recently available recorded data
 
     - `building number` (int): The number of the building (optional).  
     - `street` (string): The name of the street or specific location (optional).  
-    - `city` (string): The city in Finland (optional).  
-    - `region` (string): The region within Finland (optional).  
+    - `city` (string): The city in Finland (optional), especially cities in the Helsinki region.   
+    - `region` (string): The region within Finland (optional), especially those close to or neighboring the Helsinki region.  
     - `radius` (integer): The search radius in meters.  
 
     **Example:**    
@@ -452,7 +455,7 @@ This endpoint accumulates and provides the most recently available recorded data
 
 ### Key Features <a name="key-features"></a>
 
-1. **Real-Time Telemetry Data**: The service continuously collects real-time telemetry data from the mqtt.hsl.fi MQTT server. Telemetry data typically includes GPS coordinates, speed, and other relevant information about buses operating in Finland.
+1. **Real-Time Telemetry Data**: The service continuously collects real-time telemetry data from the mqtt.hsl.fi MQTT server. Telemetry data typically includes GPS coordinates, speed, and other relevant information about buses operating in the Helsinki region.
 
 2. **Data Storage**: All collected telemetry data is efficiently stored in a MySQL database for easy retrieval and analysis. Historical data can be invaluable for various purposes, such as route optimization and performance analysis.
 
@@ -475,14 +478,14 @@ This endpoint accumulates and provides the most recently available recorded data
 
 - **Developers and App Integration**: Developers can integrate the service's API into their applications to provide users with bus-related information, such as location tracking and arrival times.    
 
-The **Finland Bus Routes** service is a valuable resource for improving public transportation experiences, enhancing traffic management, and supporting research efforts related to bus operations in Finland. Its real-time telemetry data and accessible API make it a powerful tool for a wide range of users and applications.  
+The **Finland Bus Routes** service is a valuable resource for improving public transportation experiences, enhancing traffic management, and supporting research efforts related to bus operations in the greater Helsinki. Its real-time telemetry data and accessible API make it a powerful tool for a wide range of users and applications.  
 
 
 ### Architecture <a name="architecture"></a>
 
 #### Database Architecture <a name="database-architecture"></a>
 
-This section provides an overview of the database architecture utilized in the Finland Bus Routes application. The application relies on MySQL as the database management system to store and manage data related to bus stops, buses, real-time telemetry, and associated events.  
+This section provides an overview of the database architecture utilized in the greater Helsinki Bus Routes application. The application relies on MySQL as the database management system to store and manage data related to bus stops, buses, real-time telemetry, and associated events.  
 Below, you'll find details on the tables used in the MySQL database and their respective fields, outlining the structure and pupose of each table's columns: 
 
 ##### `stop_event` Table
@@ -531,9 +534,9 @@ These tables are interconnected to capture comprehensive data about the buses an
 
 ### Cleanup Application <a name="cleanup-application"></a>
 
-The Cleanup Application is an essential component of the Finland Bus Routes system, designed to cater to developer needs. Its primary role is to maintain the database, ensuring optimal performance and data freshness. This component was developed with specific goals in mind:
+The Cleanup Application is an essential component of the greater Helsinki Bus Routes system, designed to cater to developer needs. Its primary role is to maintain the database, ensuring optimal performance and data freshness. This component was developed with specific goals in mind:
 
-- **Database Maintenance**: The continuous data accumulation from buses across Finland necessitates regular database maintenance. The Cleanup Application is responsible for the scheduled purging of outdated data, preventing the database from becoming unwieldy.
+- **Database Maintenance**: The continuous data accumulation from buses across Helsinki region necessitates regular database maintenance. The Cleanup Application is responsible for the scheduled purging of outdated data, preventing the database from becoming unwieldy.
 
 - **Developer Focus**: Finland Bus Routes primarily targets developers interested in exploring and understanding real-time bus telemetry data. For this developer-focused environment, historical data may not be necessary, making the Cleanup Application a valuable asset.
 
@@ -561,7 +564,7 @@ This adaptability allows you to strike a balance between maintaining an up-to-th
 
 ### MQTT Telemetry Data Subscription <a name="mqtt-telemetry-data-subscription"></a>
 
-The **MQTT-Subscriber** class in the Finland Bus Routes project plays a critical role in fetching real-time bus telemetry data. It does this by subscribing to specific MQTT topics and collecting data from buses operating throughout Finland.
+The **MQTT-Subscriber** class in the Finland Bus Routes project plays a critical role in fetching real-time bus telemetry data. It does this by subscribing to specific MQTT topics and collecting data from buses operating throughout Helsinki region.
 
 #### Data Sources
 
@@ -611,7 +614,7 @@ The **Finland Bus Routes** service is designed to ensure the continuous consumpt
 
 In case you notice any disruptions in data updates, you have the flexibility to manually restart the application or application image (`app.py`) while keeping the database operational. This robust error-handling mechanism ensures uninterrupted data acquisition, contributing to a reliable and responsive service.
 
-This feature allows you to maintain the flow of information and data integrity, even when troubleshooting or addressing application errors. It offers a seamless user experience and reliability in accessing up-to-the-minute bus data across Finland.
+This feature allows you to maintain the flow of information and data integrity, even when troubleshooting or addressing application errors. It offers a seamless user experience and reliability in accessing up-to-the-minute bus data across greater Helsingfors.
 
 Please note that due to the geocode policy, inactivity or long periods of inactivity may lead to a TimeoutError in the app. If this occurs, you can resolve it by simply restarting the 'app.py' script. To prevent such errors, consider sending periodic requests to the geocode service or stopping the application when it's not actively in use, ensuring a smoother and more reliable user experience.
 
