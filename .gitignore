@@ -28,3 +28,13 @@ env/
 # Local development files
 tempCodeRunnerFile.py
 
+# macOS metadata
+__MACOSX/
+
+# System file on macOS
+.DS_Store
+
+# Custom text file
+txt.txt
+
+
