@@ -211,7 +211,7 @@ This endpoint returns JSON data of locations for active buses in the Helsinki re
     ```  
 
 - **[GET] http://localhost:5001/locations/latest**  
-This endpoint accumulates and provides the most recently available recorded data for each active bus in the Helsinki region. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies. This endpoint is an improvement of the base API-endpoint `/locations`, showing the same data, in same JSON format but with the most recent updates for each vehicle. 
+This endpoint accumulates and provides the most recently available recorded data for each active bus in the Helsinki region. It offers data collected up to the last telemetry signal received for each bus, which may vary based on their individual transmission frequencies. This endpoint is an improvement of the base API-endpoint `/locations`, showing the same data, in same JSON format but with the most recent updates for each vehicle.    
     **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/locations`](#locations) API-endpoint as shown above.  
 
 - **[GET] http://localhost:5001/locations/next_stop**  <a name="next_stop"></a>
@@ -334,7 +334,7 @@ The endpoint is similiar to the `/locations/next_stop` endpoint, not only displa
     - `radius` (integer): The search radius in meters.  
 
     **Example:**    
-    To find buses within a 500-meter radius of ***Mannerheimintie*** in ***Helsinki***, make a GET request to:  
+    To find buses within a 1000-meter radius of ***Mannerheimintie*** in ***Helsinki***, make a GET request to:  
     - http://localhost:5001/buses_within_radius/Mannerheimintie/Helsinki/1000  
 
     **Example Requests:** 
@@ -343,7 +343,7 @@ The endpoint is similiar to the `/locations/next_stop` endpoint, not only displa
 
     * Request example: `/buses_within_radius/Mannerheimintie/Helsinki/1000`    
 
-    ii. Search by street and region only, within a radius of 2000 meters: 
+    ii. Search by street and region, within a radius of 2000 meters: 
 
     * Request example: `/buses_within_radius/Mannerheimintie/Uusimaa/2000`   
 
@@ -407,7 +407,6 @@ The endpoint is similiar to the `/locations/next_stop` endpoint, not only displa
         }
     ]
     ```  
-    ***This data is gathered 3 minutes after the database cleanup***   
 
     ***Note:*** Replace the `street`, `city`, and `radius` values in the URL with your desired location and radius parameters.  
     ***Remember:***  A higher radius targets a larger area around the address provided in the URL. It is worth noticing that there might be "no bus found" within a radius of 500 meters (is it is only collecting buses with active status within given area/radius). This could be due to the cleanup application removing stored data to free up memory, or there might be no active buses in that area at that moment. Hence, consider increasing the radius or refreshing with the same parameters after a minute or so.
@@ -485,7 +484,7 @@ The **Finland Bus Routes** service is a valuable resource for improving public t
 
 #### Database Architecture <a name="database-architecture"></a>
 
-This section provides an overview of the database architecture utilized in the greater Helsinki Bus Routes application. The application relies on MySQL as the database management system to store and manage data related to bus stops, buses, real-time telemetry, and associated events.  
+This section provides an overview of the database architecture utilized in the Finland Bus Routes application. The application relies on MySQL as the database management system to store and manage data related to bus stops, buses, real-time telemetry, and associated events.  
 Below, you'll find details on the tables used in the MySQL database and their respective fields, outlining the structure and pupose of each table's columns: 
 
 ##### `stop_event` Table
@@ -534,7 +533,7 @@ These tables are interconnected to capture comprehensive data about the buses an
 
 ### Cleanup Application <a name="cleanup-application"></a>
 
-The Cleanup Application is an essential component of the greater Helsinki Bus Routes system, designed to cater to developer needs. Its primary role is to maintain the database, ensuring optimal performance and data freshness. This component was developed with specific goals in mind:
+The Cleanup Application is an essential component of the Finland Bus Routes system, designed to cater to developer needs. Its primary role is to maintain the database, ensuring optimal performance and data freshness. This component was developed with specific goals in mind:
 
 - **Database Maintenance**: The continuous data accumulation from buses across Helsinki region necessitates regular database maintenance. The Cleanup Application is responsible for the scheduled purging of outdated data, preventing the database from becoming unwieldy.
 

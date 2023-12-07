@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js
+node_modules/
+
+# Virtual environment
+venv/
+
+# Docker
+*.log
+
+# Temporary files
+*.pyc
+*.log
+*.sqlite3
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Dependency directories
+env/
+
+# Local development files
+tempCodeRunnerFile.py
+
