@@ -305,8 +305,8 @@ class MQTTSubscriber:
                     stop_lat = result_next_stop['lat'] 
                     stop_long = result_next_stop['lon'] 
                     # print(f"Stop Name: {stop_name}, Latitude: {stop_lat}, Longitude: {stop_long}")
-                else:
-                    print("Stop data is not available.")
+                else: # Reporting if we cannot find data for next stop
+                    print(f"===REPORT STATUS (WARNING)=== Vehicle_number: {vehicle_number} --- Report: Stop data could not be find. Stop data is unavailable --- Time: {utc_datetime_obj}")
                 
                 # Getting the exact location/adress for the next stop  
                 next_stop_adress = self.reverse_geocode_with_retry(stop_lat, stop_long) 
@@ -316,14 +316,14 @@ class MQTTSubscriber:
                     next_stop_adress = next_stop_adress.split(", ")
                     final_next_stop = self.get_next_stop_adress(stop_name, next_stop_adress)
                 if not next_stop_adress or not stop_name: # if it returned none value or not the adress, set it to be empty
-                    next_stop_adress = ""
+                    next_stop_adress = "Unknown"
             except KeyError:
                 final_next_stop = None
-                next_stop_adress = ""
+                next_stop_adress = "Unknown"
                 print("KeyError occurred while processing next stop. Setting everything back to default, the application is still running.")
             except Exception as e:
                 final_next_stop = None
-                next_stop_adress = ""
+                next_stop_adress = "Unknown"
                 print(f"An unexpected error occurred: {e}. Setting everything back to default, the application is still running.")
 
 
