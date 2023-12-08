@@ -341,19 +341,23 @@ The endpoint is similiar to the `/locations/next_stop` endpoint, not only displa
 
     i. Search by street and city, within a radius of 1000 meters:   
 
-    * API-endpoint: `/buses_within_radius/Mannerheimintie/Helsinki/1000` Request Example: http://localhost:5001/buses_within_radius/Mannerheimintie/Helsinki/1000         
+    * API-endpoint: `/buses_within_radius/Mannerheimintie/Helsinki/1000`   
+    * Request Example: http://localhost:5001/buses_within_radius/Mannerheimintie/Helsinki/1000         
 
     ii. Search ny city and region, within a radius of 4000 meters:
 
-    * API-endpoint: `buses_within_radius/Helsinki/Uusimaa/4000` Request Example: http://localhost:5001/buses_within_radius/Helsinki/Uusimaa/4000  
+    * API-endpoint: `buses_within_radius/Helsinki/Uusimaa/4000`   
+    * Request Example: http://localhost:5001/buses_within_radius/Helsinki/Uusimaa/4000  
 
     ii. Search by street and region, within a radius of 2000 meters: 
 
-    * API-endpoint: `/buses_within_radius/Mannerheimintie/Uusimaa/2000` Request Example: http://localhost:5001/buses_within_radius/Mannerheimintie/Uusimaa/2000   
+    * API-endpoint: `/buses_within_radius/Mannerheimintie/Uusimaa/2000`   
+    * Request Example: http://localhost:5001/buses_within_radius/Mannerheimintie/Uusimaa/2000   
 
     iii. Search by street and building number, within a radius of 1500 meters:   
 
-    * API-endpoint: `/buses_within_radius/22/Tullivuorentie/1500` Request Example: http://localhost:5001/buses_within_radius/22/Tullivuorentie/1500            
+    * API-endpoint: `/buses_within_radius/22/Tullivuorentie/1500`   
+    * Request Example: http://localhost:5001/buses_within_radius/22/Tullivuorentie/1500            
 
     And more of these type of combinations ...  
 
