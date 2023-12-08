@@ -119,7 +119,6 @@ class MQTTSubscriber:
         self.conn = conn_pool.getconn(key=conn_key) # getting the connection from the connection pool
         self.cur = self.conn.cursor() # setting up the cursor
         self.conn_key = conn_key # Connection key
-
         self.conn.commit()
         self.cur.execute("CREATE EXTENSION IF NOT EXISTS cube")
         self.cur.execute("CREATE EXTENSION IF NOT EXISTS earthdistance")
@@ -130,7 +129,6 @@ class MQTTSubscriber:
         self.cur.execute("CREATE TABLE IF NOT EXISTS bus (vehicle_number INTEGER PRIMARY KEY, operator TEXT)")  # vehicle number is the unique key
         self.cur.execute("CREATE TABLE IF NOT EXISTS bus_status (id SERIAL PRIMARY KEY, vehicle_number INTEGER NOT NULL REFERENCES bus(vehicle_number) ON DELETE CASCADE, tsi INTEGER NOT NULL, utc_timestamp TIME, route_number TEXT, current_location TEXT," +
                         "latitude FLOAT, longitude FLOAT, stop_id INTEGER REFERENCES stop(id) ON DELETE CASCADE, destination TEXT)")
-
         self.conn.commit()
 
     def get_next_stop_data(self, next_stop_name, max_retries=3):
@@ -153,7 +151,6 @@ class MQTTSubscriber:
             variables = {
                 "id": "HSL:"+next_stop_name
             }
-
 
             # Execute the GraphQL query with the document and variables
             result_next_stop = self.graph_client.execute(document, variables)
@@ -227,7 +224,6 @@ class MQTTSubscriber:
             return location.address == last_location.address
         return False
 
-    
 
     def on_connect(self, client, userdata, flags, rc):
         #print("LOG: Connected with result code: ", str(rc))
@@ -253,7 +249,6 @@ class MQTTSubscriber:
         """
 
         #print(msg.topic+" "+str(msg.payload))
-
         msg_topic = str(msg.topic)
         topic_parts = msg_topic[1:].split("/")
 
@@ -297,13 +292,12 @@ class MQTTSubscriber:
             long = payload_dict["long"]
 
             # Getting the 'next stop' data with executing the document based on  query and the ID for the stop name we want to get
-            #result_next_stop = self.graph_client.execute(document, {'id': "HSL:"+next_stop })
-
             result_next_stop = self.get_next_stop_data(next_stop_name=next_stop)
             
             stop_name = ""
             stop_lat = 0.0  # Initialize with default latitude
             stop_long = 0.0  # Initialize with default longitude
+
             # Extracting the values from the dictionary returned by execute() -> result_next_stop
             try: 
                 if result_next_stop is not None:
@@ -360,7 +354,6 @@ class MQTTSubscriber:
                     if result is None: # we didn't find any last stop location
                         #print("No results found")
                         current_address = stop_name # we are still setting the location to be the stop location were at
-                        print("result is none")
                     else:
                         current_location = result[0].split(" ") # splitting the last current location 
                         if len(current_location) >= 3:
@@ -379,8 +372,7 @@ class MQTTSubscriber:
                 Returns the current address if street and city name are found, otherwise returns Undefined.
                 """
 
-                self.teller += 1
-                #print("Teller: ", self.teller)
+                self.teller += 1 # Number of results found for GPS or MAN togheter
                 location = self.reverse_geocode_with_retry(lat, long)
                 if location:
                     if self.is_duplicate_location(location, self.last_data_gps): # if same data appears two times in a row, we select to not write the duplicate one, as it can be multiple times same signal is received, or similiar with signal with un-important information for our case
@@ -391,11 +383,9 @@ class MQTTSubscriber:
                         raise Exception("The list is not empty as expected")
                     self.last_data_gps.append(location)
                     address = location.address
-                    if (payload_dict["loc"] == "GPS"):
-                        #print("kommer fra GPS")
+                    if (payload_dict["loc"] == "GPS"): # Address is coming from GPS --
                         ...
-                    elif (payload_dict["loc"] == "MAN"):
-                        #print("Kommer fra MAN")
+                    elif (payload_dict["loc"] == "MAN"): # Address is coming from MAN --
                         ...
                     address_parts = address.split(", ") # splitting the address into parts to get the most valuable information
                     if len(address_parts) > 1:
@@ -417,6 +407,7 @@ class MQTTSubscriber:
             if topic_parts[4] == "dep": # we don't need to show what next stop here is, as it already departing from the stop, and showing current location, while next stop is not defined yet
                 stop_name = "" # can be confusing to show next stop, so we set it as empty, while status of it telling what the situation is, it gives enough information to the user
 
+            # Inserting the values to mysql database:
             try: 
                 if payload_dict["oper"] in self.oper_dict:
                     self.cur.execute("INSERT INTO bus (vehicle_number, operator) VALUES (%s, %s) ON CONFLICT (vehicle_number) DO UPDATE SET operator = EXCLUDED.operator WHERE bus.vehicle_number = EXCLUDED.vehicle_number", (vehicle_number, self.oper_dict[payload_dict["oper"]]))
@@ -453,7 +444,7 @@ class MQTTSubscriber:
 
                 self.conn.commit()
 
-
+            # If something goes wrong out of control, that is not handled with if/else, handle it with exception so that application is not crashing, report it to user
             except (KeyError, TypeError, psycopg2.Error, Exception) as e:
                 error_type = type(e).__name__
                 print(f"{error_type} occurred: {e}")

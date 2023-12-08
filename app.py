@@ -16,6 +16,7 @@ import time
 from retrying import retry
 from cleanup.cleanup import cleanup_in_progress
 from opencage.geocoder import OpenCageGeocode
+
 # Initialize Flask application
 app = Flask(__name__)    
 
@@ -44,7 +45,6 @@ logger.addHandler(console_handler)
 
 def connect_to_db():
     # Connecting to db
-    #time.sleep(1)
     try:
         conn_pool = psycopg2.pool.SimpleConnectionPool(
                 minconn=1,
@@ -61,13 +61,11 @@ def connect_to_db():
         return None
 
 
-
 # Setting up the cursor 
 cursor = None
 
 # method to get a connection from the pool
 def get_connection(conn_key, conn_pool):
-    #time.sleep(0.1)
     global cursor
     conn = conn_pool.getconn(key=conn_key)
     cursor = conn.cursor()
@@ -92,12 +90,7 @@ def start_subscriber(conn_pool, conn_key, conn):
         - We only collect the ongoing vehicles, in our case the buses.
         - Geohashlevel is set to: 2, because we dont want the smallest changes at the coordinates
     """
-
-        # Get a connection from the pool
-        #logger.info("Time between threads accumulation is 1 sec.")
-    #time.sleep(0.01)
-
-        # The broker address we want to connect to
+    # The broker address we want to connect to
     broker_address = "mqtt.hsl.fi" 
 
         # Topic we want to subscribe to
@@ -114,9 +107,9 @@ def start_subscriber(conn_pool, conn_key, conn):
 
 
 def start_threads():
-    time.sleep(4)
+    time.sleep(4) # Let the database start, and be ready to get connected, then we shall start our threads connection
     conn_pool = connect_to_db()
-    if not conn_pool:
+    if not conn_pool: # this happens mostly first time running the application with no previous run with the database, since it takes more time first time to configure for the database
         logger.info("Retrying connection...")
         time.sleep(7) 
         conn_pool = connect_to_db()
@@ -124,10 +117,8 @@ def start_threads():
     conn_key = "poolkey"
     conn = get_connection(conn_key, conn_pool)
 
-    #time.sleep(1)
-    #logger.info("The Threads getting ready to be executed ..")
     # Threading the subscriber class independently so that the class can run on max 5 threads simultaneously, while also the Flask app can run simultaneously when the app is running
-    executor_subscriber_class = ThreadPoolExecutor(max_workers=5)
+    executor_subscriber_class = ThreadPoolExecutor(max_workers=5) # threads has been tested between 1, 5 and 10, the benchmark of it showed that 5 was more suitable for the application with the CPU usage and so on.
     #executor_subscriber_class.daemon = True 
     executor_subscriber_class.submit(start_subscriber, conn_pool, conn_key, conn)
 
@@ -141,7 +132,7 @@ def get_all_bus_locations():
     - Input: None
     - Output: Returns updated bus json (with information, current_location etc.)
 
-    This method returns all last updated bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in whole finland.
+    This method returns all logged bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in Helsingfors, finland.
     """
     try:
         cursor.execute(""" 
@@ -212,14 +203,14 @@ def get_all_bus_locations():
         }
         return jsonify(error_message), 500
 
-# locations/latest is a improvement of /locations where we only show the most recent updated for each vehicle number
+# locations/latest is a improvement of /locations. We now only show the most recent updatedes for each vehicle number
 @app.route('/locations/latest') # Retrieve last updated bus for each vehicle number by tsi
 def last_updated():
     """
     - Input: None
     - Output: Returns updated bus json (with information, current_location etc.)
 
-    This method returns all last updated bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in whole finland.
+    This method returns all last updated bus information about their locations, tsi, route number, last updated timestamp, destination, operator for each bus in Helsinski, finland.
     """
     try:
         logger.info("Syncing data for latest to JSON API ...")
@@ -383,12 +374,11 @@ def last_location_next_stop():
     """
     This method get the last data about each bus and show their current location with the next stop, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
     - Input: none
-    - Output: Return json data about last known locations with their next stop
+    - Output: Return json data about last known locations (/updated) with their next stop
     """
     logger.info("Syncing data for next stop to JSON API ...")
     try: 
         cursor.execute("""
-
             WITH LatestBus AS (
             SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop, ROW_NUMBER() OVER (PARTITION BY bs.vehicle_number ORDER BY bs.tsi DESC) AS rn
             FROM bus_status bs
@@ -399,7 +389,6 @@ def last_location_next_stop():
             SELECT * FROM LatestBus 
             WHERE rn = 1
             LIMIT 300;
-
             """)
         results = cursor.fetchall()
         counter_result = 0
@@ -467,7 +456,7 @@ def get_vehicle(vehicle_number: int):
     - Input: vehicle number
     - Returns: Json data about a specific vehicle 
 
-    This method takes in a specific vehicle number and returns all the saved/stored/events information about it. 
+    This method takes in a specific vehicle number and returns all the stored information about it. 
 
     """
     try: 
@@ -682,9 +671,6 @@ def buses_within_radius(street, city, radius):
         return jsonify(error_message), 500
 
 
-
-
-
 # This method is doing nearly the same as the method below buses_within_radius(),
 #   the difference is that i would prefer to use a method like this on my frontend to ensure i can pass the location address with json to this method 
 @app.route('/buses_near_me', methods=['POST'])
@@ -695,8 +681,6 @@ def buses_near_me():
     This function takes as input a street and city name to determine the user's location, as well as a radius to display buses located near the user. 
     The output is a JSON object containing data about the buses in the vicinity of the user.
     """
-
-
 
     data = request.get_json()
     api_key = 'b5c600c5d1284ee0b9abc6c69ef95a3b'
@@ -801,55 +785,6 @@ def make_request_with_retry(city, street):
             else:
                 print(f"Retry {retry_count}...")
 
-def free_data():
-    try:
-        # Get a database connection and cursor
-
-        # Insert rows into the temporary table
-        cursor.execute("""
-            INSERT INTO temp_table
-            SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop
-            FROM bus_status AS bs
-            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
-            LEFT JOIN stop ON stop.id = bs.stop_id
-            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
-            ORDER BY bs.tsi DESC
-            LIMIT 300;
-        """)
-
-        # Delete rows that are not within the selected range
-        cursor.execute("""
-            DELETE FROM bus_status
-            WHERE id NOT IN (SELECT id FROM temp_table);
-        """)
-
-        cursor.execute("""
-            DELETE FROM stop
-            WHERE id NOT IN (SELECT id FROM temp_table);
-        """)
-
-        cursor.execute("""
-            DELETE FROM stop_event 
-            WHERE id NOT IN (SELECT id FROM temp_table);
-        """)
-
-        cursor.execute("""
-            DELETE FROM bus 
-            WHERE id NOT IN (SELECT id FROM temp_table);
-        """)
-
-        # Commit the transaction
-        conn.commit()
-
-    except Exception as e:
-        # Handle any exceptions and possibly roll back the transaction on failure
-        print(f"Error: {str(e)}")
-        conn.rollback()
-    finally:
-        # Close the cursor and database connection
-        cursor.close()
-
-
     
 # Define a signal handler for SIGINT (Ctrl+C)
 def sigint_handler(signal, frame):
@@ -872,7 +807,6 @@ if __name__ == '__main__':
     logger.info("The application server starting...")
     time.sleep(0.5)
     start_threads()
-    #logger.info("The application server started")
     logger.warning("Running the application on port 5001")
     logger.info("API URL EXAMPLE: http://localhost:5001/locations")
     logger.info("Visit: https://github.com/ahmetugsuz/Finland_Bus_Routes for more info")
