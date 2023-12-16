@@ -380,6 +380,86 @@ def last_location_next_stop():
     try: 
         cursor.execute("""
             WITH LatestBus AS (
+            SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop, ROW_NUMBER() OVER (ORDER BY bs.tsi DESC) AS rn
+            FROM bus_status bs
+            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
+            LEFT JOIN stop ON stop.id = bs.stop_id
+            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
+            )
+            SELECT * FROM LatestBus 
+            LIMIT 300;
+            """)
+        results = cursor.fetchall()
+        counter_result = 0
+        if len(results) == 0:
+            return jsonify({"message": "No vehicle found"})
+        else: 
+            bus_data = []
+            for result in results:
+                counter_result += 1
+                bus_dict = {
+                    "telemetry": {
+                        "vehicle": {
+                            "number" : result[1],
+                            "operator": result[17],
+                            "current_location": result[5],
+                            "latitude": result[6],
+                            "longitude": result[7],
+                            "status": result[18],
+                        },
+
+                        "timestamp":{
+                            "tsi": result[2],
+                            "utc_formatted": str(result[3]),
+                        },
+
+                        "route": {
+                            "number": result[4],
+                            "destination": result[9],
+                        },
+
+                        "next_stop":{
+                            "name": result[13],
+                            "address": result[14],
+                            "lat_long": f"{result[15]}, {result[16]}",
+                            "arrivel_time_to_the_stop": str(result[19]),
+                        },
+                    }
+                }
+                json_bus = json.dumps(bus_dict, ensure_ascii=False)
+                bus_data.append(json_bus)
+
+            logger.info("{} bus data retrieved from location fetch with next stop".format(counter_result))
+            print(' ')
+
+            # Combine the list of JSON strings into a single JSON array
+            response_json = "[" + ",".join(bus_data) + "]"
+
+            # Parse the JSON array into a Python object
+            response_data = json.loads(response_json)
+
+            # Return the Python object as a JSON response with UTF-8 encoding
+            return Response(json.dumps(response_data, ensure_ascii=False, indent=4).encode('utf-8'), mimetype='application/json; charset=utf-8')
+    except Exception as e:
+        error_message = {
+            "status": "error",
+            "error": str(e)
+        }
+        return jsonify(error_message), 500
+   
+
+# Ascending order from low to high while you scroll down.
+@app.route('/locations/ordered_by_vehicle')
+def location_ordered_by_vehicle():
+    """
+    This method get the last data about each bus and show their current location with the next stop, including operator, route_number, utc timestamp for when updated, status if any, and arrival_time if any
+    - Input: none
+    - Output: Return json data about last known locations (/updated) with their next stop
+    """
+    logger.info("Syncing data for next stop to JSON API ...")
+    try: 
+        cursor.execute("""
+            WITH LatestBus AS (
             SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop, ROW_NUMBER() OVER (PARTITION BY bs.vehicle_number ORDER BY bs.tsi DESC) AS rn
             FROM bus_status bs
             LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
@@ -447,7 +527,6 @@ def last_location_next_stop():
             "error": str(e)
         }
         return jsonify(error_message), 500
-   
 
 
 @app.route('/vehicles/<int:vehicle_number>') # By default method = GET to retrieve data, doesen't PUT/POST or change the data
@@ -613,6 +692,7 @@ def buses_within_radius(street, city, radius):
                         GROUP BY vehicle_number
                     ) bs_max ON bs.vehicle_number = bs_max.vehicle_number AND bs.tsi = bs_max.max_tsi
                     WHERE earth_distance(ll_to_earth(bs.latitude, bs.longitude), ll_to_earth(%s, %s)) <= %s
+                    ORDER BY tsi DESC
                 """, (lat, lon, radius))
                 results = cursor.fetchall()
             except Exception as e:
@@ -669,6 +749,7 @@ def buses_within_radius(street, city, radius):
     except Exception as e: 
         error_message = {"error": str(e)}
         return jsonify(error_message), 500
+
 
 
 # This method is doing nearly the same as the method below buses_within_radius(),

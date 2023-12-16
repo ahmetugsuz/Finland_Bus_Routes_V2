@@ -356,7 +356,7 @@ The endpoint is similiar to the `/locations/next_stop` endpoint, not only displa
 
     iii. Search by street and building number, within a radius of 1500 meters:   
 
-    * API-endpoint: `/buses_within_radius/22/Tullivuorentie/1500`   
+    * API-endpoint: `/buses_within_radius/22/Tullivuorentie/1500`    
     * Request Example: http://localhost:5001/buses_within_radius/22/Tullivuorentie/1500            
 
     And more of these type of combinations ...  

@@ -14,12 +14,14 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from gql.transport.requests import RequestsHTTPTransport
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-from gql import gql
+from gql import Client, gql
 from gql import Client as TransportClient
 from graphql import parse
 from requests import Session
 from cleanup.cleanup import cleanup_in_progress
+from requests.exceptions import HTTPError
 import time
+
 
 
 class MQTTSubscriber:    
@@ -41,79 +43,95 @@ class MQTTSubscriber:
 
         # Dict to get the operator name based on their ID  
         self.oper_dict = {
-        6: "Oy Pohjolan Liikenne Ab", 
-        12: "Helsingin Bussiliikenne Oy", 
-        17: "Tammelundin Liikenne Oy", 
-        18: "Oy Pohjolan Liikenne Ab",
-        20: "Bus Travel Åbergin Linja Oy",
-        21: "Bus Travel Oy Reissu Ruoti",
-        22: "Nobina Finland Oy", 
-        30: "Savonlinja Oy",
-        36: "Nurmijärven Linja Oy",
-        40: "HKL-Raitioliikenne",
-        47: "Taksikuljetus Oy", 
-        50: "HKL-Metroliikenne",
-        51: "Korsisaari Oy", 
-        54: "V-S Bussipalvelut Oy", 
-        58: "Koillisen Liikennepalvelut Oy", 
-        59: "Tilausliikenne Nikkanen Oy", 
-        60: "Suomenlinnan Liikenne Oy", 
-        64: "Lappeenrannan Linkki Oy",
-        89: "Metropolia", 
-        90: "VR Oy",
-        130: "Matkahuolto", 
-        195: "Siuntio",
-        64: "Lappeenrannan Linkki Oy",
-        200: "Tammisaaren Liikenne Oy",
-        215: "Forssan Liikenne Oy",
-        230: "Joensuun Bussiliikenne Oy",
-        245: "Oy Kvarken Lines Ltd",
-        250: "Pietarsaaren Linja Oy",
-        265: "Kokkolan Liikenne Oy",
-        280: "Vaasan Paikallisliikenne Oy",
-        295: "Kajaanin Paikallisliikenne Oy",
-        310: "Oulun joukkoliikenne",
-        325: "Rovaniemen Paikallisliikenne Oy",
-        340: "Kemin Taksiliikenne Oy",
-        355: "Tornion Kaupungin Liikenne",
-        370: "Kuopion Liikenne Oy",
-        385: "Jyväskylän Liikenne Oy",
-        400: "Lappeenrannan Linja Oy",
-        415: "Kotkan Paikallisliikenne Oy",
-        430: "Mikkeli Region Transport (Mikkelin Seudun Palveluliikenne)",
-        445: "Lahden Liikenne Oy",
-        460: "Turku Region Public Transport (Turun seudun joukkoliikenne)",
-        475: "Pori Linjat Oy",
-        490: "Rauman Liikenne Oy",
-        505: "Kokkolan paikallisliikenne Oy",
-        520: "Seinäjoen Joukkoliikenne Oy",
-        535: "Vaasan Paikallisliikenne Oy",
-        550: "Tampereen Kaupungin Liikenne",
-        565: "Riihimäen Kaupunkiliikenne Oy",
-        580: "Hämeenlinnan Kaupunkiliikenne",
-        595: "Porin Linjat Oy"
+            6: "Oy Pohjolan Liikenne Ab", 
+            12: "Helsingin Bussiliikenne Oy", 
+            17: "Tammelundin Liikenne Oy", 
+            18: "Oy Pohjolan Liikenne Ab",
+            20: "Bus Travel Åbergin Linja Oy",
+            21: "Bus Travel Oy Reissu Ruoti",
+            22: "Nobina Finland Oy", 
+            30: "Savonlinja Oy",
+            36: "Nurmijärven Linja Oy",
+            40: "HKL-Raitioliikenne",
+            47: "Taksikuljetus Oy", 
+            50: "HKL-Metroliikenne",
+            51: "Korsisaari Oy", 
+            54: "V-S Bussipalvelut Oy", 
+            58: "Koillisen Liikennepalvelut Oy", 
+            59: "Tilausliikenne Nikkanen Oy", 
+            60: "Suomenlinnan Liikenne Oy", 
+            64: "Lappeenrannan Linkki Oy",
+            89: "Metropolia", 
+            90: "VR Oy",
+            130: "Matkahuolto", 
+            195: "Siuntio",
+            64: "Lappeenrannan Linkki Oy",
+            200: "Tammisaaren Liikenne Oy",
+            215: "Forssan Liikenne Oy",
+            230: "Joensuun Bussiliikenne Oy",
+            245: "Oy Kvarken Lines Ltd",
+            250: "Pietarsaaren Linja Oy",
+            265: "Kokkolan Liikenne Oy",
+            280: "Vaasan Paikallisliikenne Oy",
+            295: "Kajaanin Paikallisliikenne Oy",
+            310: "Oulun joukkoliikenne",
+            325: "Rovaniemen Paikallisliikenne Oy",
+            340: "Kemin Taksiliikenne Oy",
+            355: "Tornion Kaupungin Liikenne",
+            370: "Kuopion Liikenne Oy",
+            385: "Jyväskylän Liikenne Oy",
+            400: "Lappeenrannan Linja Oy",
+            415: "Kotkan Paikallisliikenne Oy",
+            430: "Mikkeli Region Transport (Mikkelin Seudun Palveluliikenne)",
+            445: "Lahden Liikenne Oy",
+            460: "Turku Region Public Transport (Turun seudun joukkoliikenne)",
+            475: "Pori Linjat Oy",
+            490: "Rauman Liikenne Oy",
+            505: "Kokkolan paikallisliikenne Oy",
+            520: "Seinäjoen Joukkoliikenne Oy",
+            535: "Vaasan Paikallisliikenne Oy",
+            550: "Tampereen Kaupungin Liikenne",
+            565: "Riihimäen Kaupunkiliikenne Oy",
+            580: "Hämeenlinnan Kaupunkiliikenne",
+            595: "Porin Linjat Oy"
         }
 
         self.geolocator = Nominatim(user_agent="my_app") # creating a geolocater variable on my app
-
+        self.graph_client = None
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # Disabling the ssl verification, DON'T Recommend this on dev, but to not use time on this in first place as it's not the main case, i'm avoiding it.
 
         # Initialize the GraphQL client and set the endpoint URL
-        subscription_key = 'baf79f82592c44aabce4feff0ef46c25'
-        url = 'https://dev-api.digitransit.fi/routing/v1/routers/hsl/index/graphql'
-        #self.graph_client = TransportClient(transport=transport, fetch_schema_from_transport=True)
-        # Set up headers with the subscription key
-        transport = RequestsHTTPTransport(
-            url=url,
-            verify=False,  # Disabling SSL verification for dev (not recommended for production)
-            headers={
-                'digitransit-subscription-key': subscription_key,
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-            }
-        )
-        self.graph_client = TransportClient(transport=transport, fetch_schema_from_transport=True)
+        subscription_key = 'c2206061ead14e778ab1fb5fee0c1716'
+        url = 'https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql'
 
+        # Set up headers with the subscription key
+        headers={
+            'digitransit-subscription-key': subscription_key,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+        }
+        try: 
+            transport = RequestsHTTPTransport(
+                url=url,
+                verify=False,  # Disabling SSL verification for dev (not recommended for production)
+                retries=3,
+                headers=headers,
+            )
+            self.graph_client = Client(transport=transport, fetch_schema_from_transport=True)
+        except HTTPError as e:
+            if e.resonse.status_code == 401:
+                print("Access Denied during client initialization. Check API key and permissions.")
+            else:
+                # Handle other HTTP errors during client initialization
+                print(f"HTTP Error occurred during client initialization: {e}")
+        except Exception as e:
+            # Catch other exceptions
+            print(f"An unexpected error occurred while trying to request Transport: {e}")
+            print(".")
+            print(".")
+            print(".")
+            return None
+            
         # Connecting to db
         self.conn_pool = conn_pool
         self.conn = conn_pool.getconn(key=conn_key) # getting the connection from the connection pool
@@ -161,41 +179,28 @@ class MQTTSubscriber:
             else:
                 print("Failed to retrieve stop data.")
                 return None
-        except gql.transport.exceptions.TransportServerError as tse:
-            # Handle TransportServerError (502 Bad Gateway or 504 Gateway Timeout)
-            print(f"TransportServerError occurred: {tse}")
-            print(".")
-            print(".")
-            print(".")
-            print("Handling the error..")
-            # Retry logic
-            if max_retries > 0:
-                print("Retrying query in 3 seconds...")
-                time.sleep(3)
-                return self.get_next_stop_data(next_stop_name, max_retries=max_retries-1)
+
+        except HTTPError as e:
+            # Handle the Access Denied (401) error
+            if e.response.status_code == 401:
+                print("Access Denied. Check API key and permissions.")
+                # Add any specific handling logic or raise a custom exception if needed.
             else:
-                print("Maximum retries reached. Unable to fetch data.")
-                return None
-
-        except gql.transport.exceptions.TransportQueryError as tqe:
-            # Handle TransportQueryError (e.g., GraphQL query syntax error)
-            print(f"TransportQueryError occurred: {tqe}")
-            print(".")
-            print(".")
-            print(".")
-            print("Handling the error.. Setting everything back to default")
-            print("The application is still running")
+                # Handle other HTTP errors
+                print(f"HTTP Error occurred: {e}")
+                # Add additional error handling logic if needed.
+        except gql.transport.exceptions.TransportServerError as tse:
+            print(f"Exception:{tse}")
             return None
-
+        except gql.transport.exceptions.TransportQueryError as tqe:
+            print(f"Exception:{tqe}")
+            return None
         except Exception as e:
             # Catch other exceptions
             print(f"An unexpected error occurred: {e}")
-            print(".")
-            print(".")
-            print(".")
-            print("Handling the error.. Setting everything back to default")
-            print("The application is still running")
             return None
+
+
 
     
     def get_next_stop_adress(self, stop_name: str, next_stop_adress: list):
