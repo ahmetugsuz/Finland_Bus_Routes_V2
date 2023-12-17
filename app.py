@@ -380,13 +380,23 @@ def last_location_next_stop():
     try: 
         cursor.execute("""
             WITH LatestBus AS (
-            SELECT bs.*, stop.*, bus.operator, stop_event.status, stop_event.arrival_time_to_the_stop, ROW_NUMBER() OVER (ORDER BY bs.tsi DESC) AS rn
-            FROM bus_status bs
-            LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
-            LEFT JOIN stop ON stop.id = bs.stop_id
-            LEFT JOIN stop_event ON stop_event.id = stop.stop_event
+                SELECT 
+                    bs.*, 
+                    bs.tsi as tsi,
+                    stop.*, 
+                    bus.operator, 
+                    stop_event.status, 
+                    stop_event.arrival_time_to_the_stop, 
+                    ROW_NUMBER() OVER (PARTITION BY bs.vehicle_number ORDER BY bs.tsi DESC) AS rn
+                FROM 
+                    bus_status bs
+                    LEFT JOIN bus ON bus.vehicle_number = bs.vehicle_number
+                    LEFT JOIN stop ON stop.id = bs.stop_id
+                    LEFT JOIN stop_event ON stop_event.id = stop.stop_event
+                ORDER BY bs.tsi DESC  
             )
             SELECT * FROM LatestBus 
+            WHERE rn = 1
             LIMIT 300;
             """)
         results = cursor.fetchall()
