@@ -247,11 +247,11 @@ This endpoint returns JSON data of locations and their next stop information for
     }
     ```
 
-- **[GET] http://localhost:5001/locations/next_stop/logger**  
-This historical endpoint provides a log of all related data for each active bus in the Helsinki region. It allows you to access a comprehensive record of information about each bus, including historical data and changes over time. 
-The endpoint is similiar to the `/locations/next_stop` endpoint, not only displaying recent data but also presenting historical data for each vehicle. 
+- **[GET] http://localhost:5001/locations/ordered_by_vehicle**  
+This API endpoint displays data in ascending order based on vehicle numbers. Easily view the latest updates for each vehicle number in a structured manner. Scroll down to access vehicles with higher numbers, facilitating quick lookup for specific vehicles and their latest updates. 
     **JSON format:** The JSON objects will be structured the same as the example objects format provided for the example response for [`/next_stop`](#next_stop) API-endpoint as shown above. 
 
+- **[GET] http://localhost:5001/locations/next_stop/logger** 
 
 - **[GET] http://localhost:5001/vehicles/{vehicle_number}**   
     This endpoint allows users to retrieve specific information for a vehicle by providing its unique vehicle number as a parameter in the URL.  
